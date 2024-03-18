@@ -1,0 +1,58 @@
+1.项目结构说明
+data
+    '''存储数据集，snp数据&label数据'''
+out
+    '''存储各类输出，em： ckpt，history，pic，log'''
+
+package
+
+    out_process
+    system_process
+    utils
+    model
+    train
+        '''训练模型.fit架构'''
+        callbacks
+            '''.'''
+        compile
+            '''.'''
+        train_struct
+            '''.'''
+
+main.py
+
+1.文件存储路径与结构说明
+in：
+input：snp.raw文件
+    format：
+    data/input/snp_classes_num.raw
+    em：
+    data/input/snp_check_5460.raw
+    snp的classes详细说明
+
+label：label.phen文件
+    format：
+    data/label/feature_classes_num.phen
+    em：
+    data/label/100back_10100011_5460.phen
+
+out：
+    checkpoint .data & .index 文件
+        format：
+        out/checkpoint/model/inCla_feature_laCla_num/cross_i/variables/ .index & .data_1_
+        em:
+        out/checkpoint/deepGblup/1_100back_10100011_5460/cross0/variables/ model.ckpt.index & model.ckpt.00000-of-00001
+
+
+
+
+train_history .txt文件
+
+log .txt文件
+
+pic_loss
+
+
+
+
+

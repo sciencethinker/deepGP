@@ -1,0 +1,14 @@
+#classic ignore 
+*.pyc
+
+#don't save checkpoint
+/out/checkpoint/
+/out/train_history/
+#data don't save
+data/
+
+#
+.idea/
+
+
+
