@@ -40,7 +40,6 @@ class LocalLinear(tf.keras.Model):
         pad_dimension = [[0,0],[0,self.padding]]
         X = tf.pad(X,pad_dimension,mode="CONSTANT")
 
-
         #对张量X(n,p+pad)->(n,1,p+pad,1)进行重复切割形成新张量X(n,fold_num,kernel_size,1) 左1用于填充 右1表示snp位点的表示向量长度
         X = tf.reshape(X,[-1,1,X.shape[1],1])#X:(n,p+pad)->(n,1,p+pad,1)
         '''

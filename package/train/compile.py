@@ -14,6 +14,9 @@ import tensorflow as tf
 '''############ 指定loss为tensorflow的均方误差 ########'''
 loss = tf.losses.MeanSquaredError
 
+class SmoothLoss(tf.keras.losses.Loss):
+    pass
+
 '''############ 自定义metric ##########'''
 class Corralation(tf.keras.metrics.Metric):
     def __init__(self,name = 'corralation',h=1,gblup_hat = None):
@@ -58,6 +61,6 @@ class Corralation(tf.keras.metrics.Metric):
     def result(self):
         return self.r_cor
 
-
     def reset_state(self):
         self.r_cor.assign(0.0)
+

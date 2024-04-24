@@ -16,12 +16,13 @@ class SNPdata():
 
 def loadData(raw_path,phen_path):
     '''
-    依据文件路径获取数据
+    依据文件路径获取数据,通过.raw文件中id是否与.phen文件中id相匹配，将.raw中id分为训练验证集与预测集
+    因此匹配标准是.phen的ID，应设置.phen文件尽量大
     :param raw_path:
     :param phen_path:
     :return:
-    X_tensor-已知X,Y_tensor已知X对应label
-    ,X_tensor_pre-未知label对应的X,id_pred未知label对应的id
+    X_tensor --> 已知X,Y_tensor已知X对应label
+    ,X_tensor_pre --> 未知label对应的X,id_pred未知label对应的id
     '''
     #获取标签字典{phen_id:value}
     with open(phen_path,'r') as phenFile:
@@ -30,27 +31,27 @@ def loadData(raw_path,phen_path):
         phen_dict = {}
         train_ids = []
         for line in tqdm.tqdm(phenFile,desc='Label data load:'):
-            line_ = line.split()
+            line_ = line.split() # PID PhenType
             phen_dict[line_[0]] = float(line_[1])
             train_ids.append(line_[0])
 
         #get raw list(X,Y for train;X,Y for predict)
 
         start = 6 #数据起始点
-        X = []
-        Y = []
-        X_pred = []
-        id_pred = []
+        X = []    #训练与验证集
+        Y = []    #训练与验证标签集
+        X_pred = []   #预测集
+        id_pred = []  #预测标签集
 
         # Load snp and Rearrange phen data
         raw_file = open(raw_path)  # SNP
         if True:
-            SNPs = next(raw_file).split()[start:]
+            SNPs = next(raw_file).split()[start:] #SNP 名称
         for line in tqdm.tqdm(raw_file,desc='Input data load:'):
             line_ = line.split()
 
             #judge PID in train_ids
-            if line_[1] in train_ids:
+            if line_[1] in train_ids:#若raw中id未匹配labels的id，则为预测样本
                 X.append(line_[start:])
                 Y.append(phen_dict[line_[1]])
             else:
@@ -66,7 +67,6 @@ def loadData(raw_path,phen_path):
 
         #获取snp名称，即rawFile表头
 
-    pass
 
 #交叉数据集处理
 def get_cross_data(data,fold_num):

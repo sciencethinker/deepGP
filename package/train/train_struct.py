@@ -6,6 +6,9 @@ import time
 import os
 import package.train.callbacks as callBacks
 import package.train.compile as compile
+import package.utils.timeProcess as timeProc
+
+
 
 class TimeMeasure:
     def __init__(self,func):
@@ -33,7 +36,7 @@ def dict_save(dict, save_path):
             file.writelines(str(key) + ' ' + value_str + '\n')
     print('save dict at: {}'.format(save_path))
 
-@TimeMeasure
+@timeProc.TimeMeasure
 def train(model,data_train,data_val,epoch,batch,
                  lr_init,
                  h = 1,
@@ -49,6 +52,7 @@ def train(model,data_train,data_val,epoch,batch,
     #metrics list
     r_corraltion = compile.Corralation(h=h)
     metrics = [r_corraltion,]
+
     model.compile(optimizer=optimizer(learning_rate=lr_init),
                   loss=loss,
                   metrics=metrics)

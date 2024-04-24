@@ -35,26 +35,31 @@ choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
 '''
 #test
 #data_file_dict:dict 确定每次模型训练文件有哪些
-input_file = 'data/input/s0_50k_5701.raw'
-label_file = 'data/label/la10110011_100age_5460.phen'
+input_file = 'data/input/s1_50k_5224.raw'
+label_file = 'data/label/laOrig_10age_5021.phen'
 
 
 data_dict = {}
 x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
-stddev = tf.math.reduce_std(y_all)
-mean = tf.reduce_mean(y_all)
-y_all = (y_all - mean) / stddev
-in_feature = x_all.shape[-1]
-dataSet = ds.createDataSet(x_all,y_all)
-for i,(data_train,data_val) in enumerate(ds.get_cross_data(data=dataSet,fold_num=cross_fold)):
-    data_dict['{}'.format(i)] = (data_train,data_val)
-print('**************************** data process done! *****************************')
+
 
 
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ deepGblUP @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
 if sysargs['model'] in ['deepGblup','deepgblup',*allModelName]:
+    '''
+    data process
+    '''
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
+    in_feature = x_all.shape[-1]
+    dataSet = ds.createDataSet(x_all, y_all)
+    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
+        data_dict['{}'.format(i)] = (data_train, data_val)
+    print('**************************** data process done! *****************************')
+
     Model = deepm.model_all['deepGblup']
     model_param = {'ymean':mean,'snp_num':in_feature}
     model_name = 'deepGblup/'

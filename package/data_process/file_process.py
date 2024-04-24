@@ -28,9 +28,10 @@ def getSnpLabel_mes(snpFile,labelFile):
     return allMes + '/'
 if __name__ == '__main__':
     '''
-    提供文件路径时不要发癫，一会儿/，一会儿//'''
-    a = '../data_jyzxProcess/data/data/sn0_5460.raw'
-    b = '..\\data_jyzxProcess\\data\\data\\100fat_la1101101_5460.phen'
+    提供文件路径时不要发癫，一会儿/，一会儿//   (╯▔皿▔)╯...
+    '''
+    a = 'data/input/s1_50k_5224.raw'
+    b = 'data/label/laOrig_10age_5021.phen'
     print(getSnpLabel_mes(a,b))
 
 
