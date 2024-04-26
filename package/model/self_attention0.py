@@ -123,6 +123,7 @@ class Position_encoding(tf.keras.layers.Layer):
         '''
         super(Position_encoding, self).__init__()
         #初始化位置编码矩阵
+        self.d_model = d_model
         self.constant = float(constant)
         self.encoding = np.array([[pos/np.power(self.constant,(i-i%2)/d_model) for i in range(d_model)]
                                   for pos in range(maxlen)])
@@ -143,7 +144,7 @@ class Position_encoding(tf.keras.layers.Layer):
         batch_size,length,d_model = inputs.shape #n,length,dimension
         #检查维度是否相同
         if d_model != self.encoding.shape[-1]:
-            raise Exception('dimension dosen\'t match:d_input:{0},d_encoding:{1}'.format(d_model,self.encoding.shape[-1]))
+            raise Exception('dimension dosen\'t match:d_input(x):{0},d_encoding:{1}'.format(d_model,self.encoding.shape[-1]))
         out = self.encoding[:length,:]
         return out
 
@@ -271,12 +272,11 @@ class SNPAtten0(tf.keras.Model):
                  full_dropout_rates = [0.2,0.2],
                  attention_initializer=None,
                  pos_CONSTANT=10000,
-                 bocks_num = 8,
-                 snp_depth = 3,):
+                 bocks_num = 8,):
         '''
 
         :param maxlen:
-        :param d_model:
+        :param d_model:dimension of sequence
         :param fp_units:
         :param fp_acts:
         :param attention_units:
@@ -291,25 +291,27 @@ class SNPAtten0(tf.keras.Model):
         :param snp_depth:
         '''
         super(SNPAtten0, self).__init__()
-        self.snp2vec = snp_emb.Snp2Vec(depth=snp_depth)
+        self.snp2vec = snp_emb.Snp2Vec(depth=d_model)
         self.decoders = Encoder(maxlen,d_model,
                                 attention_units,multi_head,use_bais,
                                 full_units,full_act,full_dropout_rates,
                                 attention_initializer,
                                 pos_CONSTANT,
                                 bocks_num)
-        #last layer
+
+        #last layer ——> full prediction (abbr."fp")
         self.ffn_pre = FullLayer(units_list=fp_units,activation_list=fp_acts)
-        self.fp0 = tf.keras.layers.Dense(units=fp_units[0],activation=fp_acts[0])
-        self.fp1 = tf.keras.layers.Dense(units=fp_units[1],activation=fp_acts[1])
-        self.fp_drop1 = tf.keras.layers.Dropout(fp_drop)
-        self.fp2 = tf.keras.layers.Dense(units=fp_units[2],activation=fp_acts[2])
-        self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1])
+        self.fp0 = tf.keras.layers.Dense(units=fp_units[0],activation=fp_acts[0],name='fp0')
+        self.fp1 = tf.keras.layers.Dense(units=fp_units[1],activation=fp_acts[1],name='fp1')
+        self.fp_drop1 = tf.keras.layers.Dropout(fp_drop,name='fp_drop1')
+        self.fp2 = tf.keras.layers.Dense(units=fp_units[2],activation=fp_acts[2],name='fp2')
+        self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1],name='fpAL')
+
 
     def call(self,x):
         x = self.snp2vec(x)
         x = self.decoders(x)
-        x_pre = x[:,0,:]
+        x_pre = self.ffn_pre(x[:,0,:])
         y = self.fp0(x_pre)
         y = self.fp1(y)
         y = self.fp_drop1(y)
@@ -318,73 +320,100 @@ class SNPAtten0(tf.keras.Model):
         return y
 
 
+
 if __name__ == "__main__":
-    #:test1:Multiself_Attention0()(tensor)
-    print('\n:test1:Multiself_Attention0()(tensor)\nresult:')
-    te = tf.random.uniform((2,5,3))
-    n,m,d = te.shape
-    model = MultiSelf_attention0(d)
-    result = model(te,te,te)
-    print(result)
+    # #:test1:Multiself_Attention0()(tensor)
+    # print('\n:test1:Multiself_Attention0()(tensor)\nresult:')
+    # te = tf.random.uniform((2,5,3))
+    # n,m,d = te.shape
+    # model = MultiSelf_attention0(d)
+    # result = model(te,te,te)
+    # print(result)
+    #
+    # #:test2:Positional_encoding
+    # print('\n:test2:Positional_encoding\nresult:')
+    # maxlen,d_model = 20,6
+    # te = tf.constant([[[i for i in range(d_model)] for pos in range(maxlen-3)]for n in range(2)],dtype=tf.float32)
+    # pos_em = Position_encoding(d_model,maxlen)
+    # result = pos_em(te)
+    # print("position encoding matrix:\n{}".format(result))
+    # print("Position_encoding'variables:{}".format(pos_em.variables))
+    #
+    # #:test3:Layer_norm
+    # print("\n:test3:Layer_norm\n")
+    # te = tf.constant([[[1,2,3,4,5],[6,7,8,9,10]],
+    #                   [[2,3,4,5,6],[7,8,9,10,11]]],dtype=tf.float32)
+    # print(te)
+    # lay_nor = LayerNorm(te.shape[-1])
+    # result = lay_nor(te)
+    # print('result:\n{}'.format(result))
+    #
+    # #:test4:FullLayer
+    # print('\n:test4:FullLayer\n')
+    # te = tf.random.uniform((2,4,6),minval=0,maxval=10)
+    # full_layer = FullLayer((10,te.shape[-1]))
+    # result = full_layer(te)
+    # print('result:\n{0}\nfull_layer.variables:\n{1}'.format(result,full_layer.variables))
+    #
+    # te = tf.ones((2,5,10))
+    # te_l = tf.keras.layers.Dropout(0.5)
+    # tf.keras.layers.Dropout(0.5)(te)
+    # print(te_l(te))
+    #
+    # #:test5:EncoderLayer0
+    # print("\n:test5:EncoderLayer0\n")
+    # te = tf.random.uniform((2,6,10),0,10)
+    # enc = EncoderLayer0(te.shape[-1],te.shape[-1],8,True,full_units=[int(te.shape[-1]*1.5),te.shape[-1]])
+    # result = enc(te)
+    # print('result\n{0}\nvariables\n{1}'.format(result,enc.variables))
+    # for i,val in enumerate(enc.variables):
+    #     print('###{0}--@@@@@@@@@@@@@@@@@@@@ {1} @@@@@@@@@@@@@@@@@@@@\n{2}\n'.format(i,val.name,val),)
+    #
+    # #:test6:Encoder
+    # print('\n:test6:Encoder\n')
+    # te = tf.random.uniform((2,6,10),0,10)
+    # encs = Encoder(bocks_num=8,maxlen=te.shape[1],d_model=te.shape[-1],attention_units=te.shape[-1],
+    #                multi_head=8,use_bais=True,full_units=[int(te.shape[-1]*2),te.shape[-1]])
+    # result = encs(te)
+    # print('result\n{}'.format(result))
+    # for i,val in enumerate(encs.variables):
+    #     print('{0}---{1}'.format(i,val.name))
 
-    #:test2:Positional_encoding
-    print('\n:test2:Positional_encoding\nresult:')
-    maxlen,d_model = 20,6
-    te = tf.constant([[[i for i in range(d_model)] for pos in range(maxlen-3)]for n in range(2)],dtype=tf.float32)
-    pos_em = Position_encoding(d_model,maxlen)
-    result = pos_em(te)
-    print("position encoding matrix:\n{}".format(result))
-    print("Position_encoding'variables:{}".format(pos_em.variables))
+    # #:test7:SNPAtten
+    # te = tf.random.uniform(shape=(2,6),maxval=3,minval=0,dtype=tf.int32)
+    # d_model = 3
+    # snp_model = SNPAtten0(maxlen=te.shape[1]+1,d_model=d_model,
+    #                       fp_units=[d_model*3,d_model*2,d_model,1],fp_acts=['relu','relu','relu',None],fp_drop=0.2,
+    #                       attention_units=d_model,multi_head=8,use_bais=True,
+    #                       full_units=[d_model*2,d_model])
+    # snp_model.snp2vec(te)
+    # res = snp_model(te)
+    # print('res\n{}'.format(res))
 
-    #:test3:Layer_norm
-    print("\n:test3:Layer_norm\n")
-    te = tf.constant([[[1,2,3,4,5],[6,7,8,9,10]],
-                      [[2,3,4,5,6],[7,8,9,10,11]]],dtype=tf.float32)
-    print(te)
-    lay_nor = LayerNorm(te.shape[-1])
-    result = lay_nor(te)
-    print('result:\n{}'.format(result))
+    #:test8:SNPAtten---train
+    print('\n:test8:SNPAtten---train\n')
+    te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
+    te_y = tf.random.uniform(shape=(100,1))
+    #data_process
+    d_model = 5
+    te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
+    snp_emb.Snp2Vec(depth=d_model).embeding(te)
+    snp_num = te.shape[1]
+    ####################### done #######################
 
-    #:test4:FullLayer
-    print('\n:test4:FullLayer\n')
-    te = tf.random.uniform((2,4,6),minval=0,maxval=10)
-    full_layer = FullLayer((10,te.shape[-1]))
-    result = full_layer(te)
-    print('result:\n{0}\nfull_layer.variables:\n{1}'.format(result,full_layer.variables))
+    snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
+                          fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
+                          fp_drop=0.2,
+                          attention_units=d_model, multi_head=8, use_bais=True,
+                          full_units=[d_model * 2, d_model])
+    snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
 
-    te = tf.ones((2,5,10))
-    te_l = tf.keras.layers.Dropout(0.5)
-    tf.keras.layers.Dropout(0.5)(te)
-    print(te_l(te))
+    history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
+    snp_model.summary()
 
-    #:test5:EncoderLayer0
-    print("\n:test5:EncoderLayer0\n")
-    te = tf.random.uniform((2,6,10),0,10)
-    enc = EncoderLayer0(te.shape[-1],te.shape[-1],8,True,full_units=[int(te.shape[-1]*1.5),te.shape[-1]])
-    result = enc(te)
-    print('result\n{0}\nvariables\n{1}'.format(result,enc.variables))
-    for i,val in enumerate(enc.variables):
-        print('###{0}--@@@@@@@@@@@@@@@@@@@@ {1} @@@@@@@@@@@@@@@@@@@@\n{2}\n'.format(i,val.name,val),)
 
-    #:test6:Encoder
-    print('\n:test6:Encoder\n')
-    te = tf.random.uniform((2,6,10),0,10)
-    encs = Encoder(bocks_num=8,maxlen=te.shape[1],d_model=te.shape[-1],attention_units=te.shape[-1],
-                   multi_head=8,use_bais=True,full_units=[int(te.shape[-1]*2),te.shape[-1]])
-    result = encs(te)
-    print('result\n{}'.format(result))
-    for i,val in enumerate(encs.variables):
-        print('{0}---{1}'.format(i,val.name))
 
-    #:test7:SNPAtten
-    te = tf.random.uniform(shape=(2,6))
-    d_model = 3
-    snp_model = SNPAtten0(maxlen=te.shape[1],d_model=d_model,
-                          fp_units=[d_model*3,d_model*2,d_model,1],fp_acts=['relu','relu','relu',None],fp_drop=0.2,
-                          attention_units=d_model,multi_head=8,use_bais=True,
-                          full_units=[d_model*2,d_model])
-    res = snp_model(te)
-    print('res\n{}'.format(res))
+
 
 
 

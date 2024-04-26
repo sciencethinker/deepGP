@@ -215,7 +215,7 @@ if __name__ == "__main__":
     print('\n:test:load data\n{}'.format(predDeepGBLUP0.predMes))
 
     #:test1.2:predict
-    predDeepGBLUP0.predict(x_all)
+    print(predDeepGBLUP0.predict(x_all))
 
     #:test1.3:estimate
 

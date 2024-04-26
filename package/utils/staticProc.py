@@ -59,7 +59,6 @@ def loss_mean_std_tf(x,y):
 
 
 
-
 if __name__ == '__main__':
     #1:test:--> corr_matrix_np
     print('1:test:--> corr_matrix_np')

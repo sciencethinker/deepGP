@@ -1,0 +1,9 @@
+版本更新说明
+0.0.0
+    基础框架，具有基本的训练能力
+0.1.0
+    添加了self-attention基本模型
+0.2.0
+    修改了snpAtten，添加了补全[CLS]列方法，
+    train_main model添加了snpAtten训练模块
+
