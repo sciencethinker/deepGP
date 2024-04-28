@@ -3,6 +3,8 @@
     编码基因分型数据的抽象父类,期望将一个基本的基因分型tensor编码为一种特定结构的tensor
 
 '''
+import numpy as np
+
 import tensorflow as tf
 
 class SnpEmbedding:
@@ -66,6 +68,21 @@ class Snp2Vec(SnpEmbedding):
         x = tf.concat((add_coloum,x),axis=1)
         return x
 
+    def random_pick(self,x,pick_num,min_snp,max_snp,seed=42,axis = 1):
+        '''
+        :param x:2D or 3D Tensor
+        :param seed: random seed
+        :return:
+        '''
+        tf.random.set_seed(seed=seed)
+        index = tf.range(min_snp,max_snp)
+        index = tf.random.shuffle(index)[0:pick_num]
+        index = tf.sort(index) #按照顺序排序
+        x = tf.gather(x,index,axis=axis) #选取snp序列维度
+        tf.random.set_seed(None)#取消全局设置
+        return x
+
+
 
 
 if __name__ == '__main__':
@@ -77,10 +94,11 @@ if __name__ == '__main__':
     res = s2v(te)
     print('result\n{}'.format(res))
 
-
-
-
-
+    #:test2:Snp2Vec.random_pick
+    print('\n:test2:Snp2Vec.random_pick\n')
+    x = tf.random.uniform((2,20),maxval=20,dtype=tf.int32)
+    x = Snp2Vec(depth=20).random_pick(x,10,5,20)
+    print('res\n{}'.format(x))
 
 
 

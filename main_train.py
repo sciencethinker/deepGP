@@ -101,8 +101,9 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     y_all = (y_all - mean) / stddev
     #add coloumn
     d_model = 5
-    x_all = deepm.Snp2Vec(depth=d_model).add_coloumn(x_all)
-    x_pre = deepm.Snp2Vec(depth=d_model).add_coloumn(x_pre,add_elem=-1)
+    emb = deepm.Snp2Vec(depth=d_model)
+    x_all = emb.random_pick(emb.add_coloumn(x_all),pick_num=100,min_snp=0,max_snp=x_all.shape[1]+1)
+    x_pre = emb.random_pick(emb.add_coloumn(x_pre),pick_num=100,min_snp=0,max_snp=x_all.shape[1]+1)
     snp_num = x_all.shape[1] #获取snp数量
     dataSet = ds.createDataSet(x_all, y_all)
     for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
@@ -111,15 +112,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
 
     #choose model & model param set
     Model = deepm.model_all['SNPAtten0']
-    '''
-    maxlen,d_model,
-    fp_units,fp_acts,fp_drop,
-    attention_units,multi_head,use_bais,
-    full_units,full_act=['relu',None],
-    full_dropout_rates = [0.2,0.2],
-    attention_initializer=None,
-    pos_CONSTANT=10000,
-    bocks_num = 8,'''
+
     model_param = {'maxlen':snp_num,'d_model':d_model,
     'fp_units':[d_model * 3, d_model * 2, d_model, 1],'fp_acts':['relu', 'relu', 'relu', None],'fp_drop':0.2,
     'attention_units':d_model,'multi_head':8,'use_bais':True,
