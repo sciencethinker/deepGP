@@ -13,9 +13,6 @@ for i,key in enumerate(chrome.keys()):
 print('total:{}'.format(count))
 
 
-
-
-
 def draw_bar_chart(indicators, values):
     # 创建一个新的图形
     plt.figure(figsize=(10, 6))

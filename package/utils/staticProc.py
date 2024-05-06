@@ -82,8 +82,8 @@ if __name__ == '__main__':
 
     #4:test:-->loss_mean_std_tf
     print('#4:test:-->loss_mean_std_tf')
-    x = tf.constant([1, 2, 3, 4, 5], dtype=tf.float32)
-    label = tf.constant([2, 3, 6, 7, 8], dtype=tf.float32)
+    x = tf.reshape(tf.constant([1, 2, 3, 4, 5], dtype=tf.float32),[5,1])
+    label = tf.reshape(tf.constant([2, 3, 6, 7, 8], dtype=tf.float32),[5,1])
     print(loss_mean_std_tf(x,label))
 
 

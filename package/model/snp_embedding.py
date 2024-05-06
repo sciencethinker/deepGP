@@ -82,6 +82,36 @@ class Snp2Vec(SnpEmbedding):
         tf.random.set_seed(None)#取消全局设置
         return x
 
+class ChrEmbed(tf.keras.layers.Layer):
+    def __init__(self,snp2chr_list,units,activation=None):
+        '''
+
+        :param snp2chr_list: int型列表，给定不同染色体对应的snp位点数量及其chr之间的位置关系
+        :param units: 将各染色体编码至相同空间
+        :param activation: 是否使用指定激活函数
+        '''
+        super(ChrEmbed, self).__init__()
+        self.snp2chr_list = snp2chr_list
+        self.denses = []
+        #创建不同染色体对应的编码层，映射至相同向量子空间
+        for i,chr_num in enumerate(self.snp2chr_list):
+            self.denses.append(tf.keras.layers.Dense(units,activation=activation,name='chr{}'.format(i)))
+
+
+    def call(self, inputs, *args, **kwargs):
+        x_list = tf.split(inputs,self.snp2chr_list,axis=1)
+        emb_list = []
+        for i,dense in enumerate(self.denses):
+            emb = tf.expand_dims(dense(x_list[i]),axis=1)#添加序列维度
+            emb_list.append(emb)
+        embs = tf.concat(emb_list,1) #在第1维(序列维度)进行合并
+        return embs
+
+
+
+
+te = tf.random.uniform((2,10))
+tf.split(te,(2,3,3,2),axis=1)
 
 
 
@@ -94,11 +124,22 @@ if __name__ == '__main__':
     res = s2v(te)
     print('result\n{}'.format(res))
 
-    #:test2:Snp2Vec.random_pick
-    print('\n:test2:Snp2Vec.random_pick\n')
+    #:test2:Snp2Vec.random_pick()
+    print('\n:test2:Snp2Vec.random_pick()\n')
     x = tf.random.uniform((2,20),maxval=20,dtype=tf.int32)
     x = Snp2Vec(depth=20).random_pick(x,10,5,20)
     print('res\n{}'.format(x))
+
+    #:test3:ChrEmbed.call()
+    print('\n:test3:ChrEmbed.call()\n')
+    x = tf.random.uniform((100,46731),maxval=2,dtype=tf.int32)
+    snpnum_list = [8769,3484,2442,2153,2262,1811,2583,2176,2168,2368,1241,1383,1021,2643,2468,2159,1372,1094,981,2153]
+
+    chr_emb = ChrEmbed(snpnum_list,512)
+    emb = chr_emb(x)
+    print('res:\n{0}\n{1}'.format(emb,emb.shape))
+
+
 
 
 

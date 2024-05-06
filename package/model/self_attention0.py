@@ -189,8 +189,6 @@ class FullLayer(tf.keras.layers.Layer):
 
         return al
 
-
-
 class EncoderLayer0(tf.keras.layers.Layer):
     '''
     inculde:
@@ -275,12 +273,12 @@ class SNPAtten0(tf.keras.Model):
                  bocks_num = 8,):
         '''
 
-        :param maxlen:
-        :param d_model:dimension of sequence
+        :param maxlen: int -- for position encoding
+        :param d_model:dimension of each sequence
         :param fp_units:
         :param fp_acts:
-        :param attention_units:
-        :param multi_head:
+        :param attention_units: int
+        :param multi_head:int -- how many heads your Attention model has
         :param use_bais:
         :param full_units:
         :param full_act:
@@ -307,10 +305,10 @@ class SNPAtten0(tf.keras.Model):
         self.fp2 = tf.keras.layers.Dense(units=fp_units[2],activation=fp_acts[2],name='fp2')
         self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1],name='fpAL')
 
-
     def call(self,x):
         x = self.snp2vec(x)
         x = self.decoders(x)
+
         x_pre = self.ffn_pre(x[:,0,:])
         y = self.fp0(x_pre)
         y = self.fp1(y)
@@ -318,6 +316,60 @@ class SNPAtten0(tf.keras.Model):
         y = self.fp2(y)
         y = self.fpAL(y)
         return y
+
+class ChrAtten0(tf.keras.Model):
+    def __init__(self,snp2chr_list,chr_emb_units,
+                 maxlen,
+                 fp_units,fp_acts,fp_drop,
+                 atten_units,multi_head,use_bais,
+                 full_units,full_act=['relu',None],
+                 full_dropout_rates = [0.2,0.2],
+                 attention_initializer=None,
+                 pos_CONSTANT=10000,
+                 bocks_num = 8):
+        '''
+
+        :param snp2chr_list:
+        :param chr_emb_units:
+        :param maxlen:
+        :param fp_units:
+        :param fp_acts:
+        :param fp_drop:
+        :param atten_units:
+        :param multi_head: int -- how many heads your Attention model has;
+        :param use_bais:
+        :param full_units:
+        :param full_act:
+        :param full_dropout_rates:
+        :param attention_initializer:
+        :param pos_CONSTANT:
+        :param bocks_num:
+        '''
+        super(ChrAtten0, self).__init__()
+        self.emb = snp_emb.ChrEmbed(snp2chr_list,chr_emb_units)
+        self.pos_enc = Position_encoding(chr_emb_units,maxlen,pos_CONSTANT)
+        self.decoders = Encoder(maxlen,chr_emb_units,
+                                atten_units,multi_head,use_bais,
+                                full_units,full_act,full_dropout_rates,
+                                attention_initializer,
+                                pos_CONSTANT,
+                                bocks_num)
+
+        #last layer ——> full prediction (abbr."fp")
+        self.ffn_pre = FullLayer(units_list=fp_units,activation_list=fp_acts)
+        self.fp0 = tf.keras.layers.Dense(units=fp_units[0],activation=fp_acts[0],name='fp0')
+        self.fp1 = tf.keras.layers.Dense(units=fp_units[1],activation=fp_acts[1],name='fp1')
+        self.fp_drop1 = tf.keras.layers.Dropout(fp_drop,name='fp_drop1')
+        self.fp2 = tf.keras.layers.Dense(units=fp_units[2],activation=fp_acts[2],name='fp2')
+        self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1],name='fpAL')
+
+    def call(self, inputs, training=None, mask=None):
+        x = self.emb(inputs)
+        x = self.pos_enc(x)
+        x = self.decoders(x)
+
+
+
 
 
 
@@ -378,7 +430,7 @@ if __name__ == "__main__":
     # print('result\n{}'.format(result))
     # for i,val in enumerate(encs.variables):
     #     print('{0}---{1}'.format(i,val.name))
-
+    #
     # #:test7:SNPAtten
     # te = tf.random.uniform(shape=(2,6),maxval=3,minval=0,dtype=tf.int32)
     # d_model = 3
@@ -391,26 +443,41 @@ if __name__ == "__main__":
     # print('res\n{}'.format(res))
 
     #:test8:SNPAtten---train
-    print('\n:test8:SNPAtten---train\n')
-    te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
-    te_y = tf.random.uniform(shape=(100,1))
-    #data_process
-    d_model = 5
-    te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
-    snp_emb.Snp2Vec(depth=d_model).embeding(te)
-    snp_num = te.shape[1]
-    ####################### done #######################
+    # print('\n:test8:SNPAtten---train\n')
+    # te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
+    # te_y = tf.random.uniform(shape=(100,1))
+    # #data_process
+    # d_model = 5
+    # te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
+    # snp_emb.Snp2Vec(depth=d_model).embeding(te)
+    # snp_num = te.shape[1]
+    # ####################### done #######################
+    #
+    # snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
+    #                       fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
+    #                       fp_drop=0.2,
+    #                       attention_units=d_model, multi_head=8, use_bais=True,
+    #                       full_units=[d_model * 2, d_model])
+    # snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
+    #
+    # history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
+    # snp_model.summary()
 
-    snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
-                          fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
-                          fp_drop=0.2,
-                          attention_units=d_model, multi_head=8, use_bais=True,
-                          full_units=[d_model * 2, d_model])
-    snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
+    #:test9:ChrAtten0---train
+    print('\n#:test9:ChrAtten0---train\n')
+    sample_num = 1000
+    chr_s = 512
+    te_x = tf.random.uniform((sample_num,46731),maxval=2,minval=0,)
+    snpnum_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368,
+                   1241, 1383, 1021, 2643, 2468, 2159, 1372, 1094, 981,  2153]
+    te_y = tf.random.uniform((sample_num,1))
 
-    history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
-    snp_model.summary()
-
+    chr_model = ChrAtten0(snp2chr_list=snpnum_list,chr_emb_units=chr_s,
+                          fp_units=[chr_s,int(chr_s*0.8),int(chr_s*0.5),1], fp_acts=['relu', 'relu', 'relu', None],fp_drop=0.2,
+                          atten_units=chr_s,multi_head=8,use_bais=True,
+                          full_units=[int(chr_s*1.5,chr_s)])
+    chr_model.compile(loss=tf.keras.losses.MeanSquaredError())
+    history = chr_model.fit(x=te_x,y=te_y,batch_size=32,epochs=10)
 
 
 

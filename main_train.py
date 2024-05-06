@@ -31,7 +31,7 @@ allModelName = ['a','all']
 ''' choose model '''
 if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 
-epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
+epoch = 10 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
 lr_init = 0.0001 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
 
@@ -54,39 +54,6 @@ label_file = 'data/label/laOrig_10age_5021.phen'
 data_dict = {}
 x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
 
-
-
-'''
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ deepGblUP @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-'''
-if sysargs['model'] in ['deepGblup','deepgblup',*allModelName]:
-    '''
-    ####################################### data process ##############################################
-    '''
-    stddev = tf.math.reduce_std(y_all)
-    mean = tf.reduce_mean(y_all)
-    y_all = (y_all - mean) / stddev
-    in_feature = x_all.shape[-1]
-    dataSet = ds.createDataSet(x_all, y_all)
-    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
-        data_dict['{}'.format(i)] = (data_train, data_val)
-    print('**************************** data process done! *****************************')
-
-    #choose model & set model param & get model_name
-    Model = deepm.model_all['deepGblup']
-    model_param = {'ymean':mean,'snp_num':in_feature}
-    model_name = 'deepGblup/'
-
-    #got to train
-    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
-    ckpt_head = 'out/checkpoint/' + model_name + tmp
-    save_history_head = 'out/train_history/' + model_name + tmp
-    log = 'out/log/' + model_name + tmp
-
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
-                                                    ckpt_head=ckpt_head,lr=lr_init,
-                                                    model_param=model_param,choose_fold=choose_fold,
-                                                    save_history_head=save_history_head)
 
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ snpAtten0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -136,9 +103,73 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
                                                     save_history_head=save_history_head)
 
 
+'''
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Fnn @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
+    '''
+    ####################################### data process ##############################################
+    '''
+    #scalar
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
+    dataSet = ds.createDataSet(x_all, y_all)
+    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
+        data_dict['{}'.format(i)] = (data_train, data_val)
+    print('**************************** data process done! *****************************')
 
+    #choose model & model param set
+    model_name = 'FNN_res1'
+    Model = deepm.model_all['FNN_res1']
+    model_param = {'blocks_arrange':[5120,*[None for _ in range(3)],4096,*[None for _ in range(3)],2048,*[None for _ in range(3)],
+                                     1024,*[None for _ in range(3)],512,*[None for _ in range(3)],256,*[None for _ in range(3)],
+                                     128,*[None for _ in range(3)]],
+                    'activation':'relu',
+                    'dropout_rate':0.5,
+                    'single_block_num':3,
+                    'last_dense_units':1,
+                    'last_dens_act':None}
 
+    #got to train
+    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
+    ckpt_head = 'out/checkpoint/' + model_name + tmp
+    save_history_head = 'out/train_history/' + model_name + tmp
+    log = 'out/log/' + model_name + tmp
 
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+                                                    ckpt_head=ckpt_head,lr=lr_init,
+                                                    model_param=model_param,choose_fold=choose_fold,
+                                                    save_history_head=save_history_head)
 
+'''
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ deepGblUP @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['deepGblup','deepgblup',*allModelName]:
+    '''
+    ####################################### data process ##############################################
+    '''
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
+    in_feature = x_all.shape[-1]
+    dataSet = ds.createDataSet(x_all, y_all)
+    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
+        data_dict['{}'.format(i)] = (data_train, data_val)
+    print('**************************** data process done! *****************************')
 
+    #choose model & set model param & get model_name
+    Model = deepm.model_all['deepGblup']
+    model_param = {'ymean':mean,'snp_num':in_feature}
+    model_name = 'deepGblup/'
 
+    #got to train
+    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
+    ckpt_head = 'out/checkpoint/' + model_name + tmp
+    save_history_head = 'out/train_history/' + model_name + tmp
+    log = 'out/log/' + model_name + tmp
+
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+                                                    ckpt_head=ckpt_head,lr=lr_init,
+                                                    model_param=model_param,choose_fold=choose_fold,
+                                                    save_history_head=save_history_head)
