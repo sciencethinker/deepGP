@@ -1,4 +1,4 @@
-版本更新说明
+版本更新说明,记录较大版本更新
 0.0.0
     基础框架，具有基本的训练能力
 0.1.0
@@ -10,5 +10,8 @@
     添加了snpAtten的snp随机选择方法
     添加了FNN res模型，ChrEmbed编码方式，ChrSelfAtten0有待完善
     main_train 添加了FNN_res1训练模块
+1.0.0
+    更改了main_train的主体架构，提升了内存的空间使用效率
+
 
 

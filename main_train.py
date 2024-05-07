@@ -31,7 +31,7 @@ allModelName = ['a','all']
 ''' choose model '''
 if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 
-epoch = 10 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
+epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
 lr_init = 0.0001 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
 
@@ -122,11 +122,11 @@ if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
     #choose model & model param set
     model_name = 'FNN_res1'
     Model = deepm.model_all['FNN_res1']
-    model_param = {'blocks_arrange':[5120,*[None for _ in range(3)],4096,*[None for _ in range(3)],2048,*[None for _ in range(3)],
-                                     1024,*[None for _ in range(3)],512,*[None for _ in range(3)],256,*[None for _ in range(3)],
-                                     128,*[None for _ in range(3)]],
+    model_param = {'blocks_arrange':[8192,*[None for _ in range(3)],6144,*[None for _ in range(3)],2048,*[None for _ in range(3)],
+                                     2048,*[None for _ in range(3)],1024,*[None for _ in range(6)],
+                                     512,*[None for _ in range(3)]],
                     'activation':'relu',
-                    'dropout_rate':0.5,
+                    'dropout_rate':0.3,
                     'single_block_num':3,
                     'last_dense_units':1,
                     'last_dens_act':None}

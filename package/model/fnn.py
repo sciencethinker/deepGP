@@ -132,7 +132,7 @@ if __name__ == '__main__':
     fres1 = FNN_res1(layer_arrange,activation='relu',dropout_rate=0.5,single_block_num=3,
                      last_dense_units=1,last_dens_act=None)
     fres1.compile(loss=tf.keras.losses.MeanSquaredError())
-    fres1.fit(x,y,batch,10)
+    his = fres1.fit(x,y,batch,10)
     fres1.summary()
 
 

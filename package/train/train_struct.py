@@ -73,13 +73,12 @@ def train(model,data_train,data_val,epoch,batch,
     return history
 
 
-
-def cross_validation_singleThreshold(data_dict,Model,
-                                     epoch,batch,ckpt_head,lr,
-                                     model_param = None,choose_fold = range(10),
-                                     shuffle_or_not = False,shuffle_size = 256,
-                                     SaveHistory = True,
-                                     save_history_head = 'out/trainHistory/model'):
+def cross_validation_singleThreshold(data_dict, Model,
+                                     epoch, batch, ckpt_head, lr,
+                                     model_param=None, choose_fold=range(10),
+                                     shuffle_or_not=False, shuffle_size=256,
+                                     SaveHistory=True,
+                                     save_history_head='out/trainHistory/model'):
     '''
     单线程交叉验证
     :param data_dict: 数据集字典，{1:(data_train,data_val),...}
@@ -99,29 +98,28 @@ def cross_validation_singleThreshold(data_dict,Model,
         print('{:*^50}'.format(' cross validation fold:%s ' % i))
         ckpt_path = ckpt_head + 'corss{}/model.ckpt'.format(i)
         print('save model path:{}'.format(ckpt_path))
-        if model_param:model = Model(**model_param)
-        else:model = Model()
+        if model_param:
+            model = Model(**model_param)
+        else:
+            model = Model()
 
-        data_train,data_val = data_dict[str(i)]
+        data_train, data_val = data_dict[str(i)]
 
-        history = train(model,data_train,data_val,epoch,batch,lr,
-                        shuffle_or_not=shuffle_or_not,shuffle_size=shuffle_size,
+        history = train(model, data_train, data_val, epoch, batch, lr,
+                        shuffle_or_not=shuffle_or_not, shuffle_size=shuffle_size,
                         ckpt_path=ckpt_path)
-        #time measure
+        # time measure
         time_spend = round(train.time_spend)
-        time_each = round(time_spend/epoch,2)
-        print('{:*^100}\n'.format(' fold:%s spend time total:%ss each epoch:%ss '%(i,time_spend,time_each)))
+        time_each = round(time_spend / epoch, 2)
+        print('{:*^100}\n'.format(' fold:%s spend time total:%ss each epoch:%ss ' % (i, time_spend, time_each)))
         history.history['time_total'] = [time_spend]
         history.history['time_each'] = [time_each]
-        histories[str(i)] = history
+        histories[str(i)] = history.history
 
-    #是否保存训练历史记录与实践
-    if SaveHistory:
-        save_history_head = save_history_head
-        for key,history in histories.items():
-            save_history_path = save_history_head.strip('/') + '/cross{}.txt'.format(key)
+        if SaveHistory:
+            save_history_path = save_history_head.strip('/') + '/cross{}.txt'.format(str(i))
             dict_save(history.history,save_history_path)
-            print('history save path:'.format(save_history_path))
+            print('*****history save path:{}*****'.format(save_history_path))
             '''记录loss & metrics 每次迭代情况:
             loss 
             corralation_3 
@@ -130,7 +128,66 @@ def cross_validation_singleThreshold(data_dict,Model,
             time_total 
             time_each 
             '''
+
     return histories
+
+# def cross_validation_singleThreshold(data_dict,Model,
+#                                      epoch,batch,ckpt_head,lr,
+#                                      model_param = None,choose_fold = range(10),
+#                                      shuffle_or_not = False,shuffle_size = 256,
+#                                      SaveHistory = True,
+#                                      save_history_head = 'out/trainHistory/model'):
+#     '''
+#     单线程交叉验证
+#     :param data_dict: 数据集字典，{1:(data_train,data_val),...}
+#     :param Model: 模型类，用于创建每次交叉验证时的模型
+#     :param model_param: 模型实例创建所需关键字参数,若无则为None
+#     :param epoch: 每次验证迭代次数
+#     :param batch:
+#     :param ckpt_head: 存储模型的check point所需 '.../'---head:corss_val创建cross目录文件，head应给出model存储路径cross目录前路径
+#     :param lr: 验证初始学习率
+#     :param choose_fold:可迭代对象
+#     :param shuffle_or_not: 是否对数据集进行随机化
+#     :param shuffle_size: 随机化尺寸
+#     :return: 返回histories字典 history是模型训练情况
+#     '''
+#     histories = {}
+#     for i in choose_fold:
+#         print('{:*^50}'.format(' cross validation fold:%s ' % i))
+#         ckpt_path = ckpt_head + 'corss{}/model.ckpt'.format(i)
+#         print('save model path:{}'.format(ckpt_path))
+#         if model_param:model = Model(**model_param)
+#         else:model = Model()
+#
+#         data_train,data_val = data_dict[str(i)]
+#
+#         history = train(model,data_train,data_val,epoch,batch,lr,
+#                         shuffle_or_not=shuffle_or_not,shuffle_size=shuffle_size,
+#                         ckpt_path=ckpt_path)
+#         #time measure
+#         time_spend = round(train.time_spend)
+#         time_each = round(time_spend/epoch,2)
+#         print('{:*^100}\n'.format(' fold:%s spend time total:%ss each epoch:%ss '%(i,time_spend,time_each)))
+#         history.history['time_total'] = [time_spend]
+#         history.history['time_each'] = [time_each]
+#         histories[str(i)] = history
+#
+#     #是否保存训练历史记录与实践
+#     if SaveHistory:
+#         save_history_head = save_history_head
+#         for key,history in histories.items():
+#             save_history_path = save_history_head.strip('/') + '/cross{}.txt'.format(key)
+#             dict_save(history.history,save_history_path)
+#             print('history save path:'.format(save_history_path))
+#             '''记录loss & metrics 每次迭代情况:
+#             loss
+#             corralation_3
+#             val_loss
+#             val_corralation
+#             time_total
+#             time_each
+#             '''
+#     return histories
 
 
 
