@@ -68,9 +68,11 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     y_all = (y_all - mean) / stddev
     #add coloumn
     d_model = 5
+    pick_num = 100
+    seed = 42
     emb = deepm.Snp2Vec(depth=d_model)
-    x_all = emb.random_pick(emb.add_coloumn(x_all),pick_num=100,min_snp=0,max_snp=x_all.shape[1]+1)
-    x_pre = emb.random_pick(emb.add_coloumn(x_pre),pick_num=100,min_snp=0,max_snp=x_all.shape[1]+1)
+    x_all = emb.random_pick(emb.add_coloumn(x_all),pick_num=pick_num,min_snp=0,max_snp=x_all.shape[1]+1,seed=seed)
+    x_pre = emb.random_pick(emb.add_coloumn(x_pre),pick_num=pick_num,min_snp=0,max_snp=x_all.shape[1]+1,seed=seed)
     snp_num = x_all.shape[1] #获取snp数量
     dataSet = ds.createDataSet(x_all, y_all)
     for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
@@ -88,7 +90,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     'attention_initializer':None,
     'pos_CONSTANT':10000,
     'bocks_num':8}
-    model_name = 'snpAtten0/'
+    model_name = 'snpAtten0_{0}s{1}k/'.format(seed,round(pick_num/1000,1))
 
 
     #got to train

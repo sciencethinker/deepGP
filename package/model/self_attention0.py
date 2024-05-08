@@ -354,6 +354,8 @@ class ChrAtten0(tf.keras.Model):
                                 attention_initializer,
                                 pos_CONSTANT,
                                 bocks_num)
+        #last attention layer
+        self.last_atten = MultiSelf_attention0(chr_emb_units,multi_head)
 
         #last layer ——> full prediction (abbr."fp")
         self.ffn_pre = FullLayer(units_list=fp_units,activation_list=fp_acts)

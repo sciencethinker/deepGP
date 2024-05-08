@@ -38,3 +38,4 @@ values = [len(chrome[key]) for key in chrome.keys()]
 
 # 绘制条形统计图
 draw_bar_chart(chrome_name, values)
+
