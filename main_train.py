@@ -29,7 +29,7 @@ sysargs = sy.getArgs()
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'sa0'
+if platform.system() == 'Windows':sysargs['model'] = 'vgg0'
 
 epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -143,6 +143,44 @@ if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
+
+'''
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ vgg0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['vgg0','VGG0','Vgg0',*allModelName]:
+    '''
+    ####################################### data process ##############################################
+    '''
+    #scalar
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
+
+    x_all = tf.expand_dims(x_all,2)
+    dataSet = ds.createDataSet(x_all, y_all)
+    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
+        data_dict['{}'.format(i)] = (data_train, data_val)
+    print('**************************** data process done! *****************************')
+
+    #choose model & set model param & get model_name
+    Model = deepm.model_all['VGG0']
+    conv_param_list = [[64,3,1,],[128,3,1,],[256,3,1,'same'],[512,3,1,],[512,3,1,]]
+    dropout_dense_rate = 0.2
+    model_param = {'conv_param_list':conv_param_list,'dropout_dense_rate':dropout_dense_rate,'out_units':1,'out_act':None}
+    model_name = 'vgg0/'
+
+    #got to train
+    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
+    ckpt_head = 'out/checkpoint/' + model_name + tmp
+    save_history_head = 'out/train_history/' + model_name + tmp
+    log = 'out/log/' + model_name + tmp
+
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+                                                    ckpt_head=ckpt_head,lr=lr_init,
+                                                    model_param=model_param,choose_fold=choose_fold,
+                                                    save_history_head=save_history_head)
+
+
 
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ deepGblUP @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
