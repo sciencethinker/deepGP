@@ -111,7 +111,7 @@ def cross_validation_singleThreshold(data_dict, Model,
         # time measure
         time_spend = round(train.time_spend)
         time_each = round(time_spend / epoch, 2)
-        print('{:*^100}\n'.format(' fold:%s spend time total:%ss each epoch:%ss ' % (i, time_spend, time_each)))
+        print('{:*^100}\n'.format('train done! fold:%s spend time total:%ss each epoch:%ss ' % (i, time_spend, time_each)))
         history.history['time_total'] = [time_spend]
         history.history['time_each'] = [time_each]
         histories[str(i)] = history.history

@@ -122,7 +122,7 @@ if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
     print('**************************** data process done! *****************************')
 
     #choose model & model param set
-    model_name = 'FNN_res1'
+    model_name = 'FNN_res1/'
     Model = deepm.model_all['FNN_res1']
     model_param = {'blocks_arrange':[8192,*[None for _ in range(3)],6144,*[None for _ in range(3)],2048,*[None for _ in range(3)],
                                      2048,*[None for _ in range(3)],1024,*[None for _ in range(6)],

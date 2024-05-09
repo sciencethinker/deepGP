@@ -25,9 +25,18 @@ def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
     #return instance object
     return call_ckpt
 
+def monitor_meanCor(log):
+    pass
+
+earlyStop = None
+
+tf.keras.callbacks.EarlyStopping
 
 
-
+#学习率随超过阈值的相关系数增大而减小
+class LearningRateSchdule(tf.keras.callbacks.Callback):
+    def __init__(self):
+        super(LearningRateSchdule, self).__init__()
 
 
 

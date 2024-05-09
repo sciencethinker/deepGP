@@ -12,6 +12,8 @@
     main_train 添加了FNN_res1训练模块
 1.0.0
     更改了main_train的主体架构，提升了内存的空间使用效率
+1.1.0
+    更新了model
 
 
 

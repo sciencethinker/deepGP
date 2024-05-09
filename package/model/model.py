@@ -27,3 +27,9 @@ model_all['ChrAtten0'] = ChrAtten0
 from package.model.fnn import FNN_res1
 model_all['FNN_res1'] = FNN_res1
 
+#7.vgg16
+from package.model.cnn0 import VGG0
+model_all['VGG0'] = VGG0
+
+
+
