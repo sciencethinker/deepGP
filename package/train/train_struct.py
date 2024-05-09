@@ -70,7 +70,7 @@ def train(model,data_train,data_val,epoch,batch,
     history = model.fit(data_train,epochs=epoch,
                         validation_data=data_val,
                         callbacks = callback)
-    return history
+    return history.history
 
 
 def cross_validation_singleThreshold(data_dict, Model,
@@ -98,6 +98,8 @@ def cross_validation_singleThreshold(data_dict, Model,
         print('{:*^50}'.format(' cross validation fold:%s ' % i))
         ckpt_path = ckpt_head + 'corss{}/model.ckpt'.format(i)
         print('save model path:{}'.format(ckpt_path))
+        #将model的上一个引用model清除
+        model = None
         if model_param:
             model = Model(**model_param)
         else:
@@ -112,13 +114,13 @@ def cross_validation_singleThreshold(data_dict, Model,
         time_spend = round(train.time_spend)
         time_each = round(time_spend / epoch, 2)
         print('{:*^100}\n'.format('train done! fold:%s spend time total:%ss each epoch:%ss ' % (i, time_spend, time_each)))
-        history.history['time_total'] = [time_spend]
-        history.history['time_each'] = [time_each]
-        histories[str(i)] = history.history
+        history['time_total'] = [time_spend]
+        history['time_each'] = [time_each]
+        histories[str(i)] = history
 
         if SaveHistory:
             save_history_path = save_history_head.strip('/') + '/cross{}.txt'.format(str(i))
-            dict_save(history.history,save_history_path)
+            dict_save(history,save_history_path)
             print('*****history save path:{}*****'.format(save_history_path))
             '''记录loss & metrics 每次迭代情况:
             loss 
