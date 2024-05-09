@@ -15,7 +15,7 @@ class VggBlock(tf.keras.layers.Layer):
         self.c0_1 = tf.keras.layers.Conv1D(filters,kernel_size,strides,padding)
         self.b0_1 = tf.keras.layers.BatchNormalization()
         self.a0_1 = tf.keras.layers.Activation(activation)
-        self.p0 = tf.keras.layers.MaxPool1D(pool_size=2,strides=1,padding='same')
+        self.p0 = tf.keras.layers.MaxPool1D(pool_size=2,strides=2,padding='same')
         self.d0 = tf.keras.layers.Dropout(dropout_rate)
         self.if_dropout = if_dropout
     def call(self, inputs, *args, **kwargs):
@@ -150,12 +150,11 @@ if __name__ == "__main__":
     x = tf.cast(tf.random.uniform((2,1024,1),maxval=10,minval=0,dtype=tf.int32),dtype=tf.float32)
     y = tf.random.uniform((2,1))
 
-    conv_block = [[64,3,1,],[128,3,1,],[256,3,1,'same'],[512,3,1,],[512,3,1,]]
+    conv_block = [[64,3,1,]]
     vgg16 = VGG0(conv_block,dropout_dense_rate=0.2,out_units=1)
     vgg16.compile(loss=tf.keras.losses.MeanSquaredError())
     vgg16.fit(x,y,batch_size=32,epochs=1)
     vgg16.summary()
-    for i,var in enumerate(vgg16.layers[0].trainable_variables):
-        print(i,var.shape)
+    vgg16.non_trainable_weights
 
-
+    vgg16(x)

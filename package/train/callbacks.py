@@ -30,7 +30,7 @@ def monitor_meanCor(log):
 
 earlyStop = None
 
-tf.keras.callbacks.EarlyStopping
+tf.keras.callbacks.ModelCheckpoint
 
 
 #学习率随超过阈值的相关系数增大而减小
