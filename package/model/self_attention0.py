@@ -476,48 +476,54 @@ if __name__ == "__main__":
     # res = snp_model(te)
     # print('res\n{}'.format(res))
 
-    #:test8:SNPAtten---train
-    # print('\n:test8:SNPAtten---train\n')
-    # te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
-    # te_y = tf.random.uniform(shape=(100,1))
-    # #data_process
-    # d_model = 5
-    # te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
-    # snp_emb.Snp2Vec(depth=d_model).embeding(te)
-    # snp_num = te.shape[1]
-    # ####################### done #######################
-    #
-    # snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
-    #                       fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
-    #                       fp_drop=0.2,
-    #                       attention_units=d_model, multi_head=8, use_bais=True,
-    #                       full_units=[d_model * 2, d_model])
-    # snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
-    #
-    # history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
-    # snp_model.summary()
+    # :test8:SNPAtten---train
+    print('\n:test8:SNPAtten---train\n')
+    te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
+    te_y = tf.random.uniform(shape=(100,1))
+    #data_process
+    d_model = 5
+    te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
+    snp_emb.Snp2Vec(depth=d_model).embeding(te)
+    snp_num = te.shape[1]
+    ####################### done #######################
 
-    #:test9:ChrAtten0---train
-    print('\n#:test9:ChrAtten0---train\n')
-    sample_num = 1000
+    snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
+                          fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
+                          fp_drop=0.2,
+                          attention_units=d_model, multi_head=8, use_bais=True,
+                          full_units=[d_model * 2, d_model])
+    snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
+
+    history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
+    snp_model.summary()
+
+    # #:test9:ChrAtten0---train
+    # print('\n#:test9:ChrAtten0---train\n')
+    # sample_num = 2
     # maxlen = 21
     # chr_s = 512
     # te_x = tf.random.uniform((sample_num,46731),maxval=2,minval=0,)
     # snpnum_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368,
     #                1241, 1383, 1021, 2643, 2468, 2159, 1372, 1094, 981,  2153]
-    conv_list = [[64,3,1,],[128,3,1],[128,3,1],[128,3,1],[128,3,1]]
-    maxlen = 6
-    chr_s = 32
-    te_x = tf.random.uniform((sample_num,1000))
-    snpnum_list = [250,250,250,200,50]
-    te_y = tf.random.uniform((sample_num,1))
-    chr_model = ChrAtten0(conv_param_list=conv_list,maxlen = maxlen,snp2chr_list=snpnum_list,chr_emb_units=chr_s,
-                          fp_units=[chr_s,int(chr_s*0.8),int(chr_s*0.5),1], fp_acts=['relu', 'relu', 'relu', None],fp_drop=0.2,
-                          atten_units=chr_s,multi_head=8,use_bais=True,
-                          full_units=[int(chr_s*1.5),int(chr_s)])
-    chr_model(te_x)
-    chr_model.compile(loss=tf.keras.losses.MeanSquaredError())
-    history = chr_model.fit(x=te_x,y=te_y,batch_size=32,epochs=10)
+    # te_y = tf.random.uniform((sample_num, 1))
+    # ############################################################################
+    # # te_x = tf.random.uniform((sample_num,1000))
+    # # te_y = tf.random.uniform((sample_num,1))
+    # # snpnum_list = [250,250,250,200,50]
+    # # maxlen = 6
+    # # chr_s = 32
+    #
+    #
+    # conv_list = [[64,3,1,],[128,3,1],[128,3,1],[128,3,1],[128,3,1],[64,3,1,]]
+    # chr_model = ChrAtten0(conv_param_list=conv_list,maxlen = maxlen,snp2chr_list=snpnum_list,chr_emb_units=chr_s,
+    #                       fp_units=[chr_s,int(chr_s*0.8),int(chr_s*0.5),1], fp_acts=['relu', 'relu', 'relu', None],fp_drop=0.2,
+    #                       atten_units=chr_s,multi_head=8,use_bais=True,
+    #                       full_units=[int(chr_s*1.5),int(chr_s)])
+    # chr_model(te_x)
+    # chr_model.compile(loss=tf.keras.losses.MeanSquaredError())
+    # history = chr_model.fit(x=te_x,y=te_y,batch_size=32,epochs=10)
+    #
+    # chr_model.summary()
 
 
 

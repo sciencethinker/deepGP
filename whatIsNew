@@ -14,7 +14,8 @@
     更改了main_train的主体架构，提升了内存的空间使用效率
 1.1.0
     更新了model
-
+1.2.0
+    完成了ChrAtten0，构建了ChrAtten0训练接口
 
 
 

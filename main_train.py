@@ -204,15 +204,15 @@ if sysargs['model'] in ['Chratten0','ca0','chrAtten0','ChrAtten0',*allModelName]
     # snp2chr_list: int型列表，给定不同染色体对应的snp位点数量对应chr之间的所属关系
     snp2chr_list = [8769,3484,2442,2153,2262,1811,2583,2176,2168,2368,1241,1383,1021,2643,2468,2159,1372,1094,981,2153]
     maxlen = 21
-    conv_param_list = [[64,3,1,],[128,3,1,],[256,3,1,'same'],[512,3,1,],[512,3,1,]]
+    conv_param_list = [[64,3,1,],[128,3,1,],[256,3,1],[256,3,1],[512,3,1,],[512,3,1],[512,3,1]]
     chr_emb_units = 512
-    #4层全连接预测层，
+    #4层全连接预测层
     fp_units = [chr_emb_units,int(chr_emb_units*0.8),int(chr_emb_units*0.8),1]
     fp_drop = 0.2
     fp_acts = ['relu','relu','relu',None]
     #self_attention units & heads
     heads = 8
-    atten_units = chr_emb_units//heads
+    atten_units = chr_emb_units
     full_units = [int(chr_emb_units*0.8),chr_emb_units]
 
     dropout_dense_rate = 0.2
@@ -238,6 +238,7 @@ if sysargs['model'] in ['Chratten0','ca0','chrAtten0','ChrAtten0',*allModelName]
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
+
 
 
 
