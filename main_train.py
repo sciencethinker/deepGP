@@ -29,7 +29,7 @@ sysargs = sy.getArgs()
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'sa0'
+if platform.system() == 'Windows':sysargs['model'] = 'ca0'
 
 epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -179,6 +179,66 @@ if sysargs['model'] in ['vgg0','VGG0','Vgg0',*allModelName]:
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
+
+
+'''
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ chrAtten0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['Chratten0','ca0','chrAtten0','ChrAtten0',*allModelName]:
+    '''
+    ####################################### data process ##############################################
+    '''
+    #scalar
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
+
+    x_all = tf.expand_dims(x_all,2)
+    dataSet = ds.createDataSet(x_all, y_all)
+    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
+        data_dict['{}'.format(i)] = (data_train, data_val)
+    print('**************************** data process done! *****************************')
+
+    #choose model & set model param & get model_name
+    Model = deepm.model_all['ChrAtten0']
+    # snp2chr_list: int型列表，给定不同染色体对应的snp位点数量对应chr之间的所属关系
+    snp2chr_list = [8769,3484,2442,2153,2262,1811,2583,2176,2168,2368,1241,1383,1021,2643,2468,2159,1372,1094,981,2153]
+    maxlen = 21
+    conv_param_list = [[64,3,1,],[128,3,1,],[256,3,1,'same'],[512,3,1,],[512,3,1,]]
+    chr_emb_units = 512
+    #4层全连接预测层，
+    fp_units = [chr_emb_units,int(chr_emb_units*0.8),int(chr_emb_units*0.8),1]
+    fp_drop = 0.2
+    fp_acts = ['relu','relu','relu',None]
+    #self_attention units & heads
+    heads = 8
+    atten_units = chr_emb_units//heads
+    full_units = [int(chr_emb_units*0.8),chr_emb_units]
+
+    dropout_dense_rate = 0.2
+    model_param = {'conv_param_list':conv_param_list,
+                 'snp2chr_list':snp2chr_list,'chr_emb_units':chr_emb_units,
+                 'maxlen':maxlen,
+                 'fp_units':fp_units,'fp_acts':fp_acts,'fp_drop':fp_drop,
+                 'atten_units':atten_units,'multi_head':heads,'use_bais':True,
+                 'full_units':full_units,'full_act':['relu',None],
+                 'full_dropout_rates':[0.2,0.2],
+                 'attention_initializer':None,
+                 'pos_CONSTANT':10000,
+                 'blocks_num':8}
+    model_name = 'ChrAtten0/'
+
+    #got to train
+    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
+    ckpt_head = 'out/checkpoint/' + model_name + tmp
+    save_history_head = 'out/train_history/' + model_name + tmp
+    log = 'out/log/' + model_name + tmp
+
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+                                                    ckpt_head=ckpt_head,lr=lr_init,
+                                                    model_param=model_param,choose_fold=choose_fold,
+                                                    save_history_head=save_history_head)
+
 
 
 

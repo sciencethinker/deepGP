@@ -12,6 +12,7 @@ fit架构专属模块
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ checkpoint @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
 import  tensorflow as tf
+import numpy as np
 def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
     '''
     :param filePath:check point path
@@ -28,9 +29,29 @@ def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
 def monitor_meanCor(log):
     pass
 
-earlyStop = None
+class CheckpointSave(tf.keras.callbacks.Callback):
+    def __init__(self,save_path,metric_t_name,metric_v_name=None):
+        super(CheckpointSave, self).__init__()
+        self.metric_t_name = metric_t_name
+        self.metric_v_name = metric_v_name
+        self.save_mapth = save_path
 
-tf.keras.callbacks.ModelCheckpoint
+    def _save_model(self):
+        if self.save_weights_only:
+            self.model.save_weights(
+                self.save_mapth,
+                overwrite=True,
+            )
+        else:
+            self.model.save(
+                self.save_mapth,
+                overwrite=True,
+            )
+
+    def on_epoch_end(self, epoch, logs=None):
+
+        self._save_model()
+
 
 
 #学习率随超过阈值的相关系数增大而减小
@@ -38,6 +59,15 @@ class LearningRateSchdule(tf.keras.callbacks.Callback):
     def __init__(self):
         super(LearningRateSchdule, self).__init__()
 
+
+class EarlyStop(tf.keras.callbacks.Callback):
+    def __init__(self,patience=20):
+        super(EarlyStop, self).__init__()
+        self.best = np.inf
+        self.wait = 0
+        self.patience = patience
+    def on_epoch_end(self, epoch, logs=None):
+        pass
 
 
 

@@ -59,7 +59,7 @@ def train(model,data_train,data_val,epoch,batch,
 
     '''call backs'''
     if os.path.exists(ckpt_path + '.index'):
-        print('**************** load model **************')
+        print('{0}\n{0}\n{0}'.format('*********************** load model *****************************'))
         model.load_weights(ckpt_path)
 
     ckpt = callBacks.checkpoint(ckpt_path,'val_loss',save_best=True,save_weight_only=True) #monitor sets as 'val_loss'
@@ -130,7 +130,6 @@ def cross_validation_singleThreshold(data_dict, Model,
             time_total 
             time_each 
             '''
-
     return histories
 
 # def cross_validation_singleThreshold(data_dict,Model,

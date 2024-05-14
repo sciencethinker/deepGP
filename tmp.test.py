@@ -1,41 +1,70 @@
-import matplotlib.pyplot as plt
-file_name = 'data/input/s1_50k.map'
-with open(file_name,'r') as file:
-    chrome = {}
-    for i,line in enumerate(file):
-        pice = line.split('\t')
-        if pice[0] not in chrome.keys():chrome[pice[0]] = []
-        chrome[pice[0]] += [pice[1]]
-count = 0
-for i,key in enumerate(chrome.keys()):
-    print('{0}:{1}'.format(key,len(chrome[key])))
-    count += len(chrome[key])
-print('total:{}'.format(count))
+import package.train.compile as comp
+import tensorflow as tf
+import numpy as np
+import package.model.fnn as fn
 
 
-def draw_bar_chart(indicators, values):
-    # 创建一个新的图形
-    plt.figure(figsize=(10, 6))
+TRAIN_COR_ALPHA = 0.4
+VAR_COR_GAMMA = 0.6
 
-    # 绘制条形统计图
-    plt.bar(indicators, values, color='skyblue')
+@tf.function
+def average_(a, b, alpha=0.4, gamma=0.6):
+    assert a != None and b != None, 'one of a or b must unequal None!'
+    if a == None: res = b
+    if b == None: res = a
 
-    # 添加标题和标签
-    plt.title('')
-    plt.xlabel('chromosome name')
-    plt.ylabel('num')
+    mean = tf.cast(alpha * a + gamma * b, dtype=tf.float32)
+    abs = tf.cast(tf.abs(a - b), dtype=tf.float32)
+    res = mean - abs
+    return res
+class MonitorCor():
+    def __init__(self):
+        self.score = tf.constant([-np.inf],dtype=tf.float32)
+    def monitor_cor_average(self,log):
+        is_save = False
+        tcor = log['corralation']
+        vcor = log['val_corralation']
+        score = average_(tcor,vcor,TRAIN_COR_ALPHA,VAR_COR_GAMMA)
+        if score > self.score:
+            self.score = score
+            is_save = True
+        return is_save
+    def __call__(self, log,*args, **kwargs):
+        return self.monitor_cor_average(log)
 
-    # 自动调整 x 轴标签的角度，防止重叠
-    plt.xticks(rotation=45, ha='right')
-
-    # 显示图形
-    plt.show()
 
 
-# 示例输入数据
-chrome_name = list(chrome.keys())
-values = [len(chrome[key]) for key in chrome.keys()]
 
-# 绘制条形统计图
-draw_bar_chart(chrome_name, values)
+
+
+filepath = '../'
+ckpt = tf.keras.callbacks.ModelCheckpoint(filepath=filepath,monitor=MonitorCor(),save_best_only=True,
+                                          save_weights_only=True,save_freq='epoch')
+
+cor_metric = comp.Corralation()
+
+size = 1024
+x = tf.cast(tf.random.uniform((size,4673),maxval=2,minval=0,dtype=tf.int32),dtype=tf.float32)
+y = tf.random.uniform((size,1))
+
+x_val = tf.cast(tf.random.uniform((int(size*0.4), 4673), maxval=2, minval=0, dtype=tf.int32), dtype=tf.float32)
+y_val = tf.random.uniform((int(size*0.4), 1))
+
+batch = 32
+layer_arrange = [512,None,1024]
+
+fres1 = fn.FNN_res1(layer_arrange,activation='relu',dropout_rate=0.5,single_block_num=3,
+                 last_dense_units=1,last_dens_act=None)
+
+save_check = '../tmp.ckpt'
+
+
+fres1.compile(loss=tf.keras.losses.MeanSquaredError(),metrics=cor_metric)
+his = fres1.fit(x,y,batch,10,validation_data=(x_val,y_val),)
+fres1.summary()
+
+fres1.save_weights('../')
+fres2 = fn.FNN_res1(layer_arrange,activation='relu',dropout_rate=0.5,single_block_num=3,
+                 last_dense_units=1,last_dens_act=None)
+
 

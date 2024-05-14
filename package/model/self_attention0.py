@@ -5,6 +5,7 @@ Self_attention:继承自tf.keras.layers.Layer
 import tensorflow as tf
 import numpy as np
 import package.model.snp_embedding as snp_emb
+import package.model.cnn0 as cnn_0
 K=tf.keras.backend
 
 class MultiSelf_attention0(tf.keras.layers.Layer):
@@ -140,11 +141,11 @@ class Position_encoding(tf.keras.layers.Layer):
         :param kwargs:
         :return:
         '''
-        if len(inputs.shape) != 3:raise Exception('input shape has wrong!need 3d tensor:(batch_size,length,d_model) but input.shape={}'.format(inputs.shape))
+        if len(inputs.shape) != 3:raise Exception('Position Encoding --- input shape has wrong!need 3d tensor:(batch_size,length,d_model) but input.shape={}'.format(inputs.shape))
         batch_size,length,d_model = inputs.shape #n,length,dimension
         #检查维度是否相同
         if d_model != self.encoding.shape[-1]:
-            raise Exception('dimension dosen\'t match:d_input(x):{0},d_encoding:{1}'.format(d_model,self.encoding.shape[-1]))
+            raise Exception('Position Encoding dimension dosen\'t match:d_input(x):{0},d_encoding:{1}'.format(d_model,self.encoding.shape[-1]))
         out = self.encoding[:length,:]
         return out
 
@@ -206,7 +207,7 @@ class EncoderLayer0(tf.keras.layers.Layer):
         :param attention_units: w_q,k,v的隐藏单元数
         :param multi_head: attenion头数量
         :param use_bais: multi-attention是否使用偏差b_q,k,v
-        :param full_units: 全连接层的使用
+        :param full_units: list [a,b] len(full_units) = 2  注意力模块全连接层列表
         :param full_act:
         :param dropout_rates:
         :param attention_initializer:
@@ -318,7 +319,8 @@ class SNPAtten0(tf.keras.Model):
         return y
 
 class ChrAtten0(tf.keras.Model):
-    def __init__(self,snp2chr_list,chr_emb_units,
+    def __init__(self,conv_param_list
+                 ,snp2chr_list,chr_emb_units,
                  maxlen,
                  fp_units,fp_acts,fp_drop,
                  atten_units,multi_head,use_bais,
@@ -326,7 +328,7 @@ class ChrAtten0(tf.keras.Model):
                  full_dropout_rates = [0.2,0.2],
                  attention_initializer=None,
                  pos_CONSTANT=10000,
-                 bocks_num = 8):
+                 blocks_num = 8):
         '''
 
         :param snp2chr_list:
@@ -346,14 +348,20 @@ class ChrAtten0(tf.keras.Model):
         :param bocks_num:
         '''
         super(ChrAtten0, self).__init__()
+        #全局基因组卷积层，并使用一层全连接层转换为model
+        self.global_conv = [cnn_0.VggBlock(*param) for param in conv_param_list]
+        self.global_conv.append(tf.keras.layers.Flatten())
+        self.global_conv.append(tf.keras.layers.Dense(chr_emb_units))
+
+
         self.emb = snp_emb.ChrEmbed(snp2chr_list,chr_emb_units)
-        self.pos_enc = Position_encoding(chr_emb_units,maxlen,pos_CONSTANT)
+        # self.pos_enc = Position_encoding(chr_emb_units,maxlen,pos_CONSTANT)
         self.decoders = Encoder(maxlen,chr_emb_units,
                                 atten_units,multi_head,use_bais,
                                 full_units,full_act,full_dropout_rates,
                                 attention_initializer,
                                 pos_CONSTANT,
-                                bocks_num)
+                                blocks_num)
         #last attention layer
         self.last_atten = MultiSelf_attention0(chr_emb_units,multi_head)
 
@@ -366,9 +374,33 @@ class ChrAtten0(tf.keras.Model):
         self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1],name='fpAL')
 
     def call(self, inputs, training=None, mask=None):
+        #全局卷积编码
+        n,length = inputs.shape
+        x_conv = tf.expand_dims(inputs,axis=-1) #在最后一维增加1维，成为3Dtensor
+        for conv in self.global_conv:
+            x_conv = conv(x_conv)
+        n,d_model = x_conv.shape
+        x_conv = tf.expand_dims(x_conv,axis=1) #将二维tensor x_conv转换为序列长度为1,编码长度为d_model的三维tensor
+        #染色体向量编码
         x = self.emb(inputs)
-        x = self.pos_enc(x)
+
+        x = tf.concat((x,x_conv),axis=1) #axis = 1 ，在序列维度进行拼接
+
         x = self.decoders(x)
+        x_pre = self.ffn_pre(x[:,0,:])
+        x_pre = self.fp0(x_pre)
+        x_pre = self.fp1(x_pre)
+        x_pre = self.fp_drop1(x_pre)
+        x_pre = self.fp2(x_pre)
+        x_pre = self.fpAL(x_pre)
+
+        return x_pre
+
+
+class ChrAtten1(tf.keras.Model):
+    def __init__(self):
+        super(ChrAtten1, self).__init__()
+
 
 
 
@@ -468,16 +500,22 @@ if __name__ == "__main__":
     #:test9:ChrAtten0---train
     print('\n#:test9:ChrAtten0---train\n')
     sample_num = 1000
-    chr_s = 512
-    te_x = tf.random.uniform((sample_num,46731),maxval=2,minval=0,)
-    snpnum_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368,
-                   1241, 1383, 1021, 2643, 2468, 2159, 1372, 1094, 981,  2153]
+    # maxlen = 21
+    # chr_s = 512
+    # te_x = tf.random.uniform((sample_num,46731),maxval=2,minval=0,)
+    # snpnum_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368,
+    #                1241, 1383, 1021, 2643, 2468, 2159, 1372, 1094, 981,  2153]
+    conv_list = [[64,3,1,],[128,3,1],[128,3,1],[128,3,1],[128,3,1]]
+    maxlen = 6
+    chr_s = 32
+    te_x = tf.random.uniform((sample_num,1000))
+    snpnum_list = [250,250,250,200,50]
     te_y = tf.random.uniform((sample_num,1))
-
-    chr_model = ChrAtten0(snp2chr_list=snpnum_list,chr_emb_units=chr_s,
+    chr_model = ChrAtten0(conv_param_list=conv_list,maxlen = maxlen,snp2chr_list=snpnum_list,chr_emb_units=chr_s,
                           fp_units=[chr_s,int(chr_s*0.8),int(chr_s*0.5),1], fp_acts=['relu', 'relu', 'relu', None],fp_drop=0.2,
                           atten_units=chr_s,multi_head=8,use_bais=True,
-                          full_units=[int(chr_s*1.5,chr_s)])
+                          full_units=[int(chr_s*1.5),int(chr_s)])
+    chr_model(te_x)
     chr_model.compile(loss=tf.keras.losses.MeanSquaredError())
     history = chr_model.fit(x=te_x,y=te_y,batch_size=32,epochs=10)
 

@@ -58,6 +58,9 @@ class Corralation(tf.keras.metrics.Metric):
     def update_state(self,y_true,y_hat,sample_weight = None):
         self.r_cor.assign(self.pred_abilitiy([y_true,y_hat],h=self.h)[0])
 
+    '''
+    由result返回最终结果
+    '''
     def result(self):
         return self.r_cor
 
