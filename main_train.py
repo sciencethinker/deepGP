@@ -193,7 +193,6 @@ if sysargs['model'] in ['Chratten0','ca0','chrAtten0','ChrAtten0',*allModelName]
     mean = tf.reduce_mean(y_all)
     y_all = (y_all - mean) / stddev
 
-    x_all = tf.expand_dims(x_all,2)
     dataSet = ds.createDataSet(x_all, y_all)
     for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
         data_dict['{}'.format(i)] = (data_train, data_val)
