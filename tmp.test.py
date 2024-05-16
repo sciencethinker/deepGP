@@ -2,48 +2,11 @@ import package.train.compile as comp
 import tensorflow as tf
 import numpy as np
 import package.model.fnn as fn
-
-
-TRAIN_COR_ALPHA = 0.4
-VAR_COR_GAMMA = 0.6
-
-@tf.function
-def average_(a, b, alpha=0.4, gamma=0.6):
-    assert a != None and b != None, 'one of a or b must unequal None!'
-    if a == None: res = b
-    if b == None: res = a
-
-    mean = tf.cast(alpha * a + gamma * b, dtype=tf.float32)
-    abs = tf.cast(tf.abs(a - b), dtype=tf.float32)
-    res = mean - abs
-    return res
-class MonitorCor():
-    def __init__(self):
-        self.score = tf.constant([-np.inf],dtype=tf.float32)
-    def monitor_cor_average(self,log):
-        is_save = False
-        tcor = log['corralation']
-        vcor = log['val_corralation']
-        score = average_(tcor,vcor,TRAIN_COR_ALPHA,VAR_COR_GAMMA)
-        if score > self.score:
-            self.score = score
-            is_save = True
-        return is_save
-    def __call__(self, log,*args, **kwargs):
-        return self.monitor_cor_average(log)
-
-
-
-
-
-
-filepath = '../'
-ckpt = tf.keras.callbacks.ModelCheckpoint(filepath=filepath,monitor=MonitorCor(),save_best_only=True,
-                                          save_weights_only=True,save_freq='epoch')
+import package.train.callbacks as callback
 
 cor_metric = comp.Corralation()
 
-size = 1024
+size = 512
 x = tf.cast(tf.random.uniform((size,4673),maxval=2,minval=0,dtype=tf.int32),dtype=tf.float32)
 y = tf.random.uniform((size,1))
 
@@ -56,15 +19,56 @@ layer_arrange = [512,None,1024]
 fres1 = fn.FNN_res1(layer_arrange,activation='relu',dropout_rate=0.5,single_block_num=3,
                  last_dense_units=1,last_dens_act=None)
 
-save_check = '../tmp.ckpt'
+save_check = '../tmp/save/test' #目录名称+文件前缀名称
 
 
 fres1.compile(loss=tf.keras.losses.MeanSquaredError(),metrics=cor_metric)
-his = fres1.fit(x,y,batch,10,validation_data=(x_val,y_val),)
+ckpt = callback.CkptSaveByMeanCor(save_check,None,'val_corralation')
+his = fres1.fit(x,y,batch,50,validation_data=(x_val,y_val),callbacks=[ckpt],validation_batch_size=512)
 fres1.summary()
 
-fres1.save_weights('../')
 fres2 = fn.FNN_res1(layer_arrange,activation='relu',dropout_rate=0.5,single_block_num=3,
                  last_dense_units=1,last_dens_act=None)
+fres2.load_weights(save_check)
 
 
+
+import package.utils.staticProc as static
+def pred_r(true, pred, h=1):
+    import math
+    pred_mean = tf.reduce_mean(pred)
+    true_mean = tf.reduce_mean(true)
+    f1 = tf.reduce_sum((pred - pred_mean) * (true - true_mean))
+    f2 = tf.sqrt(tf.reduce_sum((pred - pred_mean) ** 2) * tf.reduce_sum((true - true_mean) ** 2))
+    if f2 == 0:
+        r = 0.
+    else:
+        cor = f1 / f2
+        r = float(cor / math.sqrt(h))
+    return r
+static.corr_tf(fres2(x),y)
+static.corr_tf(fres2(x_val),y_val)
+
+
+print(tf.reduce_mean(fres2(x)-y)**2)
+print(tf.reduce_mean((fres2(x_val)-y_val)**2))
+print('------cor -> ')
+print(pred_r(fres2(x),y))
+print(pred_r(fres2(x_val),y_val))
+
+# #单纯的save_weights方式,使用index文件进行load
+# fres1.save_weights(save_check)
+# fres2 = fn.FNN_res1(layer_arrange,activation='relu',dropout_rate=0.5,single_block_num=3,
+#                  last_dense_units=1,last_dens_act=None)
+# fres2.load_weights(save_check)
+#
+# fres2(x) == fres1(x) #True
+
+# #checkpoint保存方式
+# ckpt = tf.train.Checkpoint(fres1) #保存文件前缀为teset-i，与保存文件字符串存在出入
+# ckpt.save(save_check)
+# #ckpt.restore() -> 只能使得fres1进行load
+
+#save 方式
+# fres1.save(save_check)
+# tf.keras.models.load_model(save_check)
