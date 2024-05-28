@@ -72,3 +72,8 @@ print(pred_r(fres2(x_val),y_val))
 #save 方式
 # fres1.save(save_check)
 # tf.keras.models.load_model(save_check)
+
+import tensorflow as tf
+strategy = tf.distribute.MirroredStrategy()
+strategy.num_replicas_in_sync
+tf.nn.compute_average_loss()

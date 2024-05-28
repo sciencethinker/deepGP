@@ -29,7 +29,7 @@ sysargs = sy.getArgs()
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'ca0'
+if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 
 epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -40,7 +40,8 @@ seed = 10
 shuffle_or_not = True
 shuffle_size = 540
 cross_fold = 10
-choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
+choose_fold = [0] #10折->0:9 始终从0开始
+# choose_fold = [0,1,2,3,4,5,6,7,8,9]
 
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ data import @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -48,7 +49,7 @@ choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
 #test
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
-label_file = 'data/label/laOrig_10age_5021.phen'
+label_file = 'data/label/laOrig_10fat_5021.phen'
 
 
 data_dict = {}
@@ -99,7 +100,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -175,7 +176,7 @@ if sysargs['model'] in ['vgg0','VGG0','Vgg0',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -233,7 +234,7 @@ if sysargs['model'] in ['Chratten0','ca0','chrAtten0','ChrAtten0',*allModelName]
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -269,7 +270,8 @@ if sysargs['model'] in ['deepGblup','deepgblup',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
+

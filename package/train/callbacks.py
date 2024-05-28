@@ -42,17 +42,32 @@ def monitor_meanCor(a,b,alpha=ALPHA,gamma=GAMMA,sita=SITA):
     return res
 
 class Evaluate(tf.keras.callbacks.Callback):
-    def __init__(self,data_train,data_val):
+    def __init__(self,data_train,data_val,model,metrics):
         super(Evaluate, self).__init__()
-        self.data_train = data_train
-        self.data_val = data_val
+        self.data_train = data_train #(x_train,y_train)
+        self.data_val = data_val #(x_val,y_val)
+        self.model = model
     def on_epoch_end(self, epoch, logs=None):
-        self.model.evaluate()
+        '''
+        在log_val达到
+        :param epoch:
+        :param logs:
+        :return:
+        '''
+
+    def evaluate_batch(self,batch):
+        pass
+
+
 
 class CkptSaveByMeanCor(tf.keras.callbacks.Callback):
+    '''
+    基于模型在训练集与测试集上的相关系数的相关系数关系制定的模型保存逻辑
+    1.当模型在当前epoch在data_val上表现较最佳cor更好时，进行训练集验证
+    '''
     def __init__(self,save_path,metric_t_name,metric_v_name=None,save_weights_only=True):
         '''
-        基于两种指标的大小关系与之间的差值进行模型保存
+
         目前仅支持在epoch后进行模型保存
         :param save_path:
         :param metric_t_name:

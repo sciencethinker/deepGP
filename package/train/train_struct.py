@@ -40,6 +40,7 @@ def dict_save(dict, save_path):
 def train(model,data_train,data_val,epoch,batch,
                  lr_init,
                  h = 1,
+                 validation_batch_size = None,
                  optimizer=tf.keras.optimizers.Adam,
                  shuffle_or_not=True,shuffle_size = 1024,ckpt_path='checkPoint/testCheckpoint/test'):
     ''' data '''
@@ -58,9 +59,9 @@ def train(model,data_train,data_val,epoch,batch,
                   metrics=metrics)
 
     '''call backs'''
-    if os.path.exists(ckpt_path + '.index'):
+    if os.path.exists(ckpt_path +'/variables/variables' + '.index'):
         print('{0}\n{0}\n{0}'.format('*********************** load model *****************************'))
-        model.load_weights(ckpt_path)
+        model.load_weights(ckpt_path+'/variables/variables')
 
     ckpt = callBacks.checkpoint(ckpt_path,'val_loss',save_best=True,save_weight_only=True) #monitor sets as 'val_loss'
     callback = [ckpt]
@@ -69,12 +70,11 @@ def train(model,data_train,data_val,epoch,batch,
     '''fit'''
     history = model.fit(data_train,epochs=epoch,
                         validation_data=data_val,
-                        callbacks = callback)
+                        callbacks = callback,validation_batch_size=validation_batch_size)
     return history.history
 
-
 def cross_validation_singleThreshold(data_dict, Model,
-                                     epoch, batch, ckpt_head, lr,
+                                     epoch, batch, ckpt_head, lr,validation_batch_size = None,
                                      model_param=None, choose_fold=range(10),
                                      shuffle_or_not=False, shuffle_size=256,
                                      SaveHistory=True,
@@ -107,7 +107,7 @@ def cross_validation_singleThreshold(data_dict, Model,
 
         data_train, data_val = data_dict[str(i)]
 
-        history = train(model, data_train, data_val, epoch, batch, lr,
+        history = train(model, data_train, data_val, epoch, batch, lr,validation_batch_size,
                         shuffle_or_not=shuffle_or_not, shuffle_size=shuffle_size,
                         ckpt_path=ckpt_path)
         # time measure

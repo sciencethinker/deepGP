@@ -8,41 +8,47 @@ import numpy as np
 import time
 import package.train.callbacks as callbacks
 import package.train.compile as compile
-
-
+import package.out_process.predictFuc as pred
+LR = 0.0001
+OPTIMIZER = tf.keras.optimizers.Adam(learning_rate=LR)
+LOSS = tf.keras.losses.MeanSquaredError()
+METRICS = [compile.Corralation(),]
+CALLBACK_LIST = None
 class Train:
     def __init__(self):
         #默认设置
 
-        self.lr = 0.0001
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr)
-        self.loss = tf.keras.losses.MeanSquaredError()
-        self.metric_list = [compile.Corralation()]
-        self.callback_list = []
+        self.lr = LR
+        self.optimizer = OPTIMIZER
+        self.loss = LOSS
+        self.metric_list = METRICS
+        self.callback_list = CALLBACK_LIST
 
         self.ckpt_path = None
         self.Model = None #class
-        self.data_train = None
-        self.data_val = None
-        self.data_all = None
+
 
     def set_model(self,parameters):
-        assert self.Model != None,"set model ERROR!  \nself.Model must be a class !"
+        assert self.Model != None,"set model ERROR!  \nself.Model must be a class  !"
         model = self.Model(*parameters)
         return model
 
-    def go_train(self,param,ckpt_path,batch,batch_val,epoch):
-
-        model = self.set_model(param)
-        model.compile(optimizer=self.optimizer(self.lr),
+    def _train_tf_fit(self,model,data_train,data_val,epoch,batch,lr):
+        '''compile'''
+        metrics = self.metric_list
+        model.compile(optimizer=self.optimizer,
                   loss=self.loss,
                   metrics=self.metric_list)
 
-        if os.path.exists(ckpt_path+'.index'):
-            model.load_weights(ckpt_path)
+        if os.path.exists(self.ckpt_path+'.index'):
             print('{0}\n{0}\n{0}'.format('*********************** load model *****************************'))
-        '''!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'''
-        history = model.fit()
+            model.load_weights(self.ckpt_path)
+
+        model.fit(epoch,callbacks = self.callback_list)
+
+
+    def _train_tf(self):
+        pass
 
 
     def __call__(self,if_cross, *args, **kwargs):
@@ -62,7 +68,7 @@ class Train:
         pass
 
     def add_compile(self,compile,):
-        pass
+        self.callback_list.append(compile) #compile is a instance
 
     def reset_callBacks(self,*args,**kwargs):
         pass
