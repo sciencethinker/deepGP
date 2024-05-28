@@ -77,3 +77,4 @@ import tensorflow as tf
 strategy = tf.distribute.MirroredStrategy()
 strategy.num_replicas_in_sync
 tf.nn.compute_average_loss()
+tf.keras.models.Model.fit

@@ -45,7 +45,7 @@ def train(model,data_train,data_val,epoch,batch,
                  shuffle_or_not=True,shuffle_size = 1024,ckpt_path='checkPoint/testCheckpoint/test'):
     ''' data '''
     data_train = data_train.shuffle(buffer_size=shuffle_size).batch(batch) if shuffle_or_not else data_train.batch(batch)
-    data_val = data_val.batch(batch)
+    data_val = data_val.batch(validation_batch_size)
 
     ''' compile '''
     #loss
@@ -70,7 +70,7 @@ def train(model,data_train,data_val,epoch,batch,
     '''fit'''
     history = model.fit(data_train,epochs=epoch,
                         validation_data=data_val,
-                        callbacks = callback,validation_batch_size=validation_batch_size)
+                        callbacks = callback)
     return history.history
 
 def cross_validation_singleThreshold(data_dict, Model,
