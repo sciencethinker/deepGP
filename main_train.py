@@ -34,13 +34,14 @@ if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
 lr_init = 0.0001 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
+batch_val = batch if 'batch_val' not in sysargs.keys() else int(sysargs['batch_val'])
 
 #data shuffle seed
 seed = 10
 shuffle_or_not = True
 shuffle_size = 540
 cross_fold = 10
-choose_fold = [0] #10折->0:9 始终从0开始
+choose_fold = [0,1] #10折->0:9 始终从0开始
 # choose_fold = [0,1,2,3,4,5,6,7,8,9]
 
 '''
@@ -100,7 +101,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=batch_val,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -140,7 +141,7 @@ if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=batch_val,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -176,7 +177,7 @@ if sysargs['model'] in ['vgg0','VGG0','Vgg0',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=batch_val,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -234,7 +235,7 @@ if sysargs['model'] in ['Chratten0','ca0','chrAtten0','ChrAtten0',*allModelName]
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=batch_val,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
@@ -270,7 +271,7 @@ if sysargs['model'] in ['deepGblup','deepgblup',*allModelName]:
     save_history_head = 'out/train_history/' + model_name + tmp
     log = 'out/log/' + model_name + tmp
 
-    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=128,
+    histories = ts.cross_validation_singleThreshold(data_dict,Model,epoch,batch,validation_batch_size=batch_val,
                                                     ckpt_head=ckpt_head,lr=lr_init,
                                                     model_param=model_param,choose_fold=choose_fold,
                                                     save_history_head=save_history_head)
