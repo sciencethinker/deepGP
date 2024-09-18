@@ -155,6 +155,3 @@ if __name__ == "__main__":
     vgg16.compile(loss=tf.keras.losses.MeanSquaredError())
     vgg16.fit(x,y,batch_size=32,epochs=1)
     vgg16.summary()
-    vgg16.non_trainable_weights
-
-    vgg16(x)

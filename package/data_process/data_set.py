@@ -65,8 +65,6 @@ def loadData(raw_path,phen_path):
     return X_tensor,Y_tensor,X_tensor_pre,id_pred
 
 
-        #获取snp名称，即rawFile表头
-
 
 #交叉数据集处理
 def get_cross_data(data,fold_num):

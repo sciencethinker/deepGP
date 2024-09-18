@@ -15,7 +15,9 @@
 1.1.0
     更新了model
 1.2.0
-    完成了ChrAtten0，构建了ChrAtten0训练接口
+    完成了ChrAtten0，构建了ChrAtten0训练API
+2.0.0
+    搭建了全新的Train架构以及训练模式
 
 
 

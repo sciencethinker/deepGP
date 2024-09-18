@@ -2,7 +2,10 @@
 fit架构专属模块
 指定callbacks
 用于构建模型训练时的callBack(模型回调) (无论是keras内置或是自定义)
-
+input
+    log train_param
+general method
+    on_start/epoch/batch
 已构建callbacks:
 1.checkpoint
 2.
@@ -11,12 +14,15 @@ fit架构专属模块
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ checkpoint @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
+
 import  tensorflow as tf
 import numpy as np
-
-ALPHA = 0.4
-GAMMA = 0.6
-SITA = 1
+import package.utils.staticProc as static
+SAVE_FLOAT = 2 #保留有效数字位数
+ALPHA = 4
+GAMMA = 6
+SITA = 0.3
+THRESHOLD_PORTION_CALLBACK = 0.001
 
 def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
     '''
@@ -36,81 +42,129 @@ def monitor_meanCor(a,b,alpha=ALPHA,gamma=GAMMA,sita=SITA):
     if a == None: res = b
     if b == None: res = a
     if a != None and b != None:
-        mean = tf.cast(alpha * a + gamma * b, dtype=tf.float32)
-        interval = tf.cast(tf.abs(a - b), dtype=tf.float32)
-        res = mean - sita*interval
+        res = (ALPHA * a + GAMMA * b) / (1 + SITA*abs(a - b))
     return res
 
-class Evaluate(tf.keras.callbacks.Callback):
-    def __init__(self,data_train,data_val,model,metrics):
-        super(Evaluate, self).__init__()
+def cor_schedule(cor_current,cor_best):
+    '''
+    判断当前相关系数是否为由于最佳相关系数组合
+    :param cor_current: 元组(cor_current_train,cor_current_val)
+    :param cor_best: 元组(cor_best_train,cor_best_val)
+    :return: bool True or False
+    '''
+    res = False
+    score_current = monitor_meanCor(*cor_current)
+    score_best = monitor_meanCor(*cor_best)
+    if score_current > score_best or type(score_best)==type(np.nan):res = True
+    return res
+
+class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
+    '''
+    基于模型在训练集与测试集上相关系数关系制定的模型保存逻辑
+    1.模型在当前epoch的data_val上表现较最佳cor更好时，进行训练集验证
+    2.基于cor_schedule进行模型保存判断
+    '''
+    def __init__(self,batch_train=32,batch_val=None,data_train=None,data_val=None,
+                 save_weights_only=True,cor_schedule = cor_schedule):
+        super(CkptCorSaveSchedule, self).__init__()
+        self.save_path = None #dir0/dir1/fileName
+        self.save_weights_only = save_weights_only
         self.data_train = data_train #(x_train,y_train)
         self.data_val = data_val #(x_val,y_val)
-        self.model = model
+
+
+        #init
+        '''
+        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！                
+        self.cor_train = -np.inf
+        self.cor_val = -np.inf
+        修正为使用evaluate评估相关系数
+        '''
+
+        self.batch_train = batch_train #评估相关性时的预测
+        self.batch_val = batch_val if batch_val != None else batch_train
+        self.threshold_portion = THRESHOLD_PORTION_CALLBACK #判定是否进行验证的cor_var阈值比
+
+
+
+    def on_train_begin(self, logs=None):
+        print('\nstart cor_train:{0} &&& cor_val:{1}\n'.format(self.cor_train,self.cor_val))
+
     def on_epoch_end(self, epoch, logs=None):
         '''
+        在验证集相关系数较高时进行评估
         在log_val达到
         :param epoch:
-        :param logs:
+        :param logs:{loss_batch,metircs_batch,loss_val_batch,metrics_val_batch}
         :return:
         '''
+        cor_current_val = self.evaluate_batch(self.data_val,batch=self.batch_val)
+        #当验证集相关系数较高时(>best*thresh)进行训练集验证
+        if cor_current_val > (self.cor_val * self.threshold_portion):
+            cor_current_train = self.evaluate_batch(self.data_train,batch=self.batch_train)
+            if self.cor_schedule((cor_current_train,cor_current_val),(self.cor_train,self.cor_val)):
+                '''在指定的相关系数策略下进行合理模型保存'''
+                self._save_model()
+                print('@@save model!current cor_train & cor_val VS old best cor_train & cor_val:\n{0:} + {1}  :  {2} + {3}'
+                      .format(np.round(cor_current_train,SAVE_FLOAT),np.round(cor_current_val,SAVE_FLOAT),
+                              np.round(self.cor_train,SAVE_FLOAT),np.round(self.cor_val,SAVE_FLOAT)))
+                self.cor_train = cor_current_train
+                self.cor_val = cor_current_val
 
-    def evaluate_batch(self,batch):
-        pass
-
-
-
-class CkptSaveByMeanCor(tf.keras.callbacks.Callback):
-    '''
-    基于模型在训练集与测试集上的相关系数的相关系数关系制定的模型保存逻辑
-    1.当模型在当前epoch在data_val上表现较最佳cor更好时，进行训练集验证
-    '''
-    def __init__(self,save_path,metric_t_name,metric_v_name=None,save_weights_only=True):
+    def evaluate_batch(self,data,batch):
         '''
-
-        目前仅支持在epoch后进行模型保存
-        :param save_path:
-        :param metric_t_name:
-        :param metric_v_name:
-        :param save_weights_only:
+        通过batch分段评估整体预测值相关性
+        :param data: (Tensor_x,Tensor_y)
+        :param batch: int
+        :return: Tensor_cor
         '''
-        super(CkptSaveByMeanCor, self).__init__()
-        #save path 给定保存的目录&文件名称，模型保存时创建3个文件checkpoint name.index name.data-0... 程序基于.index载入文件
-        self.save_mapth = save_path
-        self.metric_t_name = metric_t_name
-        self.metric_v_name = metric_v_name
-        self.save_weights_only = save_weights_only
-        self.best = tf.cast(-np.inf,dtype=tf.float32)
+        x,y = data
+        num_sample = x.shape[0]
+        prediton = []
+        for i in range(0,num_sample,batch):
+            x_batch = x[i:i+batch]
+            y_batch = self.model(x_batch,training = False)
+            prediton.append(y_batch)
+        y_pred = tf.concat(prediton,axis=0)
+
+
+
+        cor = static.corr_tf(y_pred,y)
+        return cor
+
 
     def _save_model(self):
         if self.save_weights_only:
             self.model.save_weights(
-                self.save_mapth,
+                self.save_path,
                 overwrite=True,
             )
         else:
             self.model.save(
-                self.save_mapth,
+                self.save_path,
                 overwrite=True,
             )
 
-    def on_epoch_begin(self, epoch, logs=None):
-        self._current_epoch = epoch
+    def train_env_compile(self,**kwargs):
+        '''
+        获取Train类实例的环境参数的专属方法
+        目的是在fit时无法获取的参数通过提前方式获得
+        :return:
+        '''
+        self.data_train = kwargs['data_train']
+        self.data_val = kwargs['data_val']
+        self.set_model(kwargs['model'])
+        self.add_ckpt_path(kwargs['ckpt'])
 
-    def on_epoch_end(self, epoch, logs=None):
+        self.cor_train = self.evaluate_batch(self.data_train,self.batch_train)
+        self.cor_train = self.evaluate_batch(self.data_val,self.batch_val)
 
-        metric_t = logs[self.metric_t_name] if self.metric_t_name != None else None
-        metric_v = logs[self.metric_v_name] if self.metric_v_name != None else None
-        if metric_t==None and metric_v==None:
-            current = tf.cast(np.inf,dtype=tf.float32)
-        else:
-            currtent = monitor_meanCor(metric_t,metric_v,ALPHA,GAMMA,SITA)
-        if currtent >= self.best:
-            self._save_model()
-            self._current_epoch = epoch
-            print('******@@@@@@@++++++@@@@@@ epoch:{0} save model!train {1}  val{2} @@@@@@@++++++@@@@@@******'
-                  .format(self._current_epoch,metric_t,metric_v))
-            self.best = currtent
+    def add_ckpt_path(self,ckpt):
+        self.save_path = ckpt
 
 #学习率随超过阈值的相关系数增大而减小
 class LearningRateSchdule(tf.keras.callbacks.Callback):
@@ -137,8 +191,6 @@ class LearningRateSchdule(tf.keras.callbacks.Callback):
     def scheduled(self):
         pass
 
-
-
 class EarlyStop(tf.keras.callbacks.Callback):
     def __init__(self,choose_mertrics,judge_func,patience=20):
         super(EarlyStop, self).__init__()
@@ -161,12 +213,65 @@ class EarlyStop(tf.keras.callbacks.Callback):
                 self.stop_epoch = epoch
                 print('stop training at epoch :{0},best socre={1}'.format(epoch,self.best))
 
-
-
-
-
 if __name__ == "__main__":
     monitor_meanCor(None,1)
+    num_t,num_v = 1000,100
+    units = 10
+    data_train = (tf.random.normal((num_t,units)),tf.random.normal((num_t,1)))
+    data_val = (tf.random.normal((num_v,units)),tf.random.normal((num_v,1)))
+    ckpt = 'out/checkpoint/test_ckptcall_model/test_ckpt'
+    ckpter = CkptCorSaveSchedule(batch_train=64)
+
+    model = tf.keras.Sequential([tf.keras.layers.Dense(units,activation='relu'),
+                                 tf.keras.layers.Dense(units*10,activation='relu'),
+                                 tf.keras.layers.Dense(1,activation='relu')])
+
+    '''
+    test CkptCorSaveSchedule
+    测试该callback在train instance中能够参与的过程
+    '''
+    #train.go_train-> train_env_compile
+    #测试callback的实时训练环境添加参数功能
+    ckpter.train_env_compile(data_train=data_train,data_val=data_val,model=model,ckpt='test')
+
+    #train.go_train->fit->epoch_end 0
+    #测试ccs的模型评估能力
+    cor = ckpter.evaluate_batch(data_train,64)
+    print(cor.numpy())
+
+    #train.go_train->fit->epoch_end 1
+    #测试ccs外包的相关系数保存能力
+    cor_curent = [abs(ckpter.evaluate_batch(data_train,64)),abs(ckpter.evaluate_batch(data_val,64))]
+    cor_best = [cor_curent[0]*0.6,cor_curent[1]*1]
+    print(ckpter.cor_schedule(cor_curent,cor_best=cor_best))
+
+    # train.go_train->fit->epoch_end 1
+    #检验ccs的模型保存能力
+    ckpter.add_ckpt_path(ckpt)
+    ckpter._save_model()
+    model.load_weights(ckpt)
+    print(model(data_val[0]))
+
+    #train.go_train->fit->epoch_end 3
+    #检验ccs的模型
+    callbacks = [ckpter]
+    model.compile(loss=tf.keras.losses.MeanSquaredError())
+    history = model.fit(x=data_train[0],y=data_train[1],batch_size=32,epochs=10,callbacks=callbacks,validation_data=data_val)
+
+
+    #train.go_train->fit fit
+    #检验模型的在train架构中的适配能力
+    import package.train.train_class as tc
+
+    import package.model.model as deepm
+    Model = deepm.FNN_res1
+    model_param = {'blocks_arrange':[5,None,5],'activation':'relu','dropout_rate':0.5,'single_block_num':3}
+
+    trainer_te = tc.Train()
+    trainer_te.set_data(data=data_train)
+    trainer_te.set_Model(Model)
+    trainer_te.cross_validation(param_model=model_param,ckpt_head='out/checkPoint/testCheckpoint',fold_num=10,
+                                range_fold=[0,2],epoch=10,batch_t=32,batch_v=32,if_pred=True,if_saveHis=True,)
 
 
 

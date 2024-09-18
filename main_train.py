@@ -21,7 +21,6 @@ import package.system_process.system_args as sy
 import package.data_process.data_set as ds
 import package.model.model as deepm
 import package.train.train_struct as ts
-import package.utils.staticProc
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ super param @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
@@ -34,7 +33,7 @@ if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
 lr_init = 0.0001 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
-batch_val = batch if 'batch_val' not in sysargs.keys() else int(sysargs['batch_val'])
+batch_val = 256 if 'batch_val' not in sysargs.keys() else int(sysargs['batch_val'])
 
 #data shuffle seed
 seed = 10

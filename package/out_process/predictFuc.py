@@ -69,6 +69,10 @@ class Prediction:
         self.creteID()
         self.data = (x,y)
 
+    def load_weights(self,ckpt_path):
+        print('load model weights at:{}'.format(ckpt_path))
+        self.model.load_weights(ckpt_path)
+
     def creteID(self):
         randint_start = 1e9
         randint_end = 1e10-1
@@ -168,6 +172,7 @@ class Prediction:
         :param way: 记录在日志中的方式，默认为追加至文件末尾'a',-----'c','r'
         :return:
         '''
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path,way) as file :
             if way == 'a': #追加内容前换行
                 file.write('\n')
@@ -177,7 +182,6 @@ class Prediction:
                 values.append(str(value)+'\t')
             file.writelines(values)
         print('write log done as \'{0}\' ! log at:{1}'.format(way,path))
-
 
     def saveResult(self,file_path):
         if os.path.exists(file_path):

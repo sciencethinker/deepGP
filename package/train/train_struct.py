@@ -22,7 +22,7 @@ class TimeMeasure:
         self.time_spend = time_end - time_start
         return result
 
-def dict_save(dict, save_path):
+def dict_save(history, save_path):
     '''
     将字典每个key及其value按行存储，value应是list,用于存储history
     :param dict:
@@ -31,8 +31,8 @@ def dict_save(dict, save_path):
     '''
     os.makedirs(os.path.dirname(save_path),exist_ok=True)
     with open(save_path, 'w') as file:
-        for key in dict:
-            value_str = ' '.join(map(str,dict[str(key)]))
+        for key in history:
+            value_str = ' '.join(map(str,history[str(key)]))
             file.writelines(str(key) + ' ' + value_str + '\n')
     print('save dict at: {}'.format(save_path))
 
@@ -44,8 +44,11 @@ def train(model,data_train,data_val,epoch,batch,
                  optimizer=tf.keras.optimizers.Adam,
                  shuffle_or_not=True,shuffle_size = 1024,ckpt_path='checkPoint/testCheckpoint/test'):
     ''' data '''
+    data_train_orig = data_train
+    data_val_orig = data_val
     data_train = data_train.shuffle(buffer_size=shuffle_size).batch(batch) if shuffle_or_not else data_train.batch(batch)
     data_val = data_val.batch(validation_batch_size)
+
 
     ''' compile '''
     #loss
@@ -64,6 +67,7 @@ def train(model,data_train,data_val,epoch,batch,
         model.load_weights(ckpt_path+'/variables/variables')
 
     ckpt = callBacks.checkpoint(ckpt_path,'val_loss',save_best=True,save_weight_only=True) #monitor sets as 'val_loss'
+
     callback = [ckpt]
 
 
