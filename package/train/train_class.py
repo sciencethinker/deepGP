@@ -243,8 +243,7 @@ class Train:
         :return:
         '''
         pass
-        x_train,y_train = data_train
-        x_val,y_val = data_val
+
 
 
     def __call__(self,if_cross, *args, **kwargs):

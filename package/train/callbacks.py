@@ -71,20 +71,8 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
         self.save_weights_only = save_weights_only
         self.data_train = data_train #(x_train,y_train)
         self.data_val = data_val #(x_val,y_val)
-
-
+        self.cor_schedule = cor_schedule
         #init
-        '''
-        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-        ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！                
-        self.cor_train = -np.inf
-        self.cor_val = -np.inf
-        修正为使用evaluate评估相关系数
-        '''
-
         self.batch_train = batch_train #评估相关性时的预测
         self.batch_val = batch_val if batch_val != None else batch_train
         self.threshold_portion = THRESHOLD_PORTION_CALLBACK #判定是否进行验证的cor_var阈值比
@@ -130,12 +118,8 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
             y_batch = self.model(x_batch,training = False)
             prediton.append(y_batch)
         y_pred = tf.concat(prediton,axis=0)
-
-
-
         cor = static.corr_tf(y_pred,y)
         return cor
-
 
     def _save_model(self):
         if self.save_weights_only:
@@ -159,9 +143,8 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
         self.data_val = kwargs['data_val']
         self.set_model(kwargs['model'])
         self.add_ckpt_path(kwargs['ckpt'])
-
         self.cor_train = self.evaluate_batch(self.data_train,self.batch_train)
-        self.cor_train = self.evaluate_batch(self.data_val,self.batch_val)
+        self.cor_val = self.evaluate_batch(self.data_val,self.batch_val)
 
     def add_ckpt_path(self,ckpt):
         self.save_path = ckpt
@@ -243,7 +226,7 @@ if __name__ == "__main__":
     #测试ccs外包的相关系数保存能力
     cor_curent = [abs(ckpter.evaluate_batch(data_train,64)),abs(ckpter.evaluate_batch(data_val,64))]
     cor_best = [cor_curent[0]*0.6,cor_curent[1]*1]
-    print(ckpter.cor_schedule(cor_curent,cor_best=cor_best))
+    print(cor_schedule(cor_curent,cor_best=cor_best))
 
     # train.go_train->fit->epoch_end 1
     #检验ccs的模型保存能力
@@ -256,7 +239,7 @@ if __name__ == "__main__":
     #检验ccs的模型
     callbacks = [ckpter]
     model.compile(loss=tf.keras.losses.MeanSquaredError())
-    history = model.fit(x=data_train[0],y=data_train[1],batch_size=32,epochs=10,callbacks=callbacks,validation_data=data_val)
+    history = model.fit(x=data_train[0],y=data_train[1],batch_size=32,epochs=100,callbacks=callbacks,validation_data=data_val)
 
 
     #train.go_train->fit fit
