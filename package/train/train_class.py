@@ -72,7 +72,7 @@ class Train:
         self.data = data
 
     def cross_validation(self,param_model,ckpt_head,fold_num,range_fold,epoch,batch_t,batch_v,
-                         if_pred,if_saveHis,if_fit=True,save_history_head='out/trainHistory/model',save_log='out/log/model',
+                         if_pred,if_saveHis,if_fit=True,save_history_head='out/train_history/model',save_log='out/log/model',
                          *callback_args,**callback_kwargs):
         '''
         交叉验证API

@@ -18,6 +18,11 @@
     完成了ChrAtten0，构建了ChrAtten0训练API
 2.0.0
     搭建了全新的Train架构以及训练模式
+2.1.0
+    构建callbacks :->  CkptCorSaveSchedule
+2.1.1
+    main_train_new 实现ChrAtten0训练模块
+
 
 
 

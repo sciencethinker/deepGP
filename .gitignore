@@ -4,6 +4,7 @@
 #don't save checkpoint
 /out/checkpoint/
 /out/train_history/
+/out/log/
 #data don't save
 data/
 
