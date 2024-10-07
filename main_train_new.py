@@ -10,7 +10,7 @@ python main.train --model model_name --epoch e --batch batch_size --lr lr_rate
 --batch
 --lr
 *** recommend use nohup command to train ***
-nohup python main.tain --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
+nohup python main_tain_new.py --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
 ##########################################################################################
 
 '''
@@ -28,7 +28,7 @@ sysargs = sy.getArgs()
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'chr0'
+if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 
 epoch = 10 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -49,7 +49,8 @@ choose_fold = [0] #10折->0:9 始终从0开始
 #test
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
-label_file = 'data/label/laOrig_10fat_5021.phen'
+#label_file = 'data/label/laOrig_10fat_5021.phen'
+label_file = 'data/label/laOrig_10age_5021.phen'
 
 data_dict = {}
 x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
@@ -67,7 +68,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     y_all = (y_all - mean) / stddev
     #add coloumn
     d_model = 5
-    pick_num = 1000
+    pick_num = 200
     seed = 42
     emb = deepm.Snp2Vec(depth=d_model)
     x_all = emb.random_pick(emb.add_coloumn(x_all),pick_num=pick_num,min_snp=0,max_snp=x_all.shape[1]+1,seed=seed)
