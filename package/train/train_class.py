@@ -47,6 +47,10 @@ class Train:
         self.data = None # [data,labels]
         #save path
 
+        #train_env
+        self.fold = None
+
+
     def set_Model(self,Model):
         '''
         设置Model类,在训练前必须选取合适的Model
@@ -97,6 +101,8 @@ class Train:
         #创建数据集生成器
         data_gen = self.make_cross_data(fold_num)
         for fold in range(fold_num):
+            self.fold = fold
+
             #初始化数据集&model，清除内存中的历史数据集&model
             model = None
             data_train = None
@@ -189,8 +195,9 @@ class Train:
 
         if if_pred:
             print('****** estimate current model *******')
+            print(self.fold)
             try :
-                preder = pred.Prediction(model,name='save_model',model_mes='None')
+                preder = pred.Prediction(model,name='save_model',model_mes='cross{}'.format(self.fold))
                 preder.load_weights(ckpt_path)
                 #val
                 preder.load_data(x=data_val[0],y=data_val[1],mes='validation')

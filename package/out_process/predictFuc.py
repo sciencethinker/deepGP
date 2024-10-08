@@ -55,6 +55,7 @@ class Prediction:
         :param ckpt: 模型参数路径
         :return: 返回模型
         '''
+
         self.checkpoint = tf.train.Checkpoint(self.model)
         self.checkpoint.restore(ckpt)
         if not model_mes == None:self.model_mes += model_mes #添加模型信息

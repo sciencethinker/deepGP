@@ -10,7 +10,7 @@ python main.train --model model_name --epoch e --batch batch_size --lr lr_rate
 --batch
 --lr
 *** recommend use nohup command to train ***
-nohup python main_tain_new.py --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
+nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
 ##########################################################################################
 
 '''
@@ -68,7 +68,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     y_all = (y_all - mean) / stddev
     #add coloumn
     d_model = 5
-    pick_num = 200
+    pick_num = 50
     seed = 42
     emb = deepm.Snp2Vec(depth=d_model)
     x_all = emb.random_pick(emb.add_coloumn(x_all),pick_num=pick_num,min_snp=0,max_snp=x_all.shape[1]+1,seed=seed)
@@ -87,13 +87,6 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     'pos_CONSTANT':10000,
     'bocks_num':8}
     model_name = 'snpAtten0_{0}s{1}k/'.format(seed,round(pick_num/1000,1))
-
-
-    #got to train
-    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
-    ckpt_head = 'out/checkpoint/' + model_name + tmp
-    save_history_head = 'out/train_history/' + model_name + tmp
-    log = 'out/log/' + model_name + tmp
 
 '''
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ChrAtten0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -134,13 +127,29 @@ if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
                    'blocks_num': 8}
     model_name = 'ChrAtten0/'
 
-    # got to train
-    tmp = fp.getSnpLabel_mes(input_file, label_file)  # 获取snp与label文件信息以创建各类out的头目录
-    ckpt_head = 'out/checkpoint/' + model_name + tmp
-    save_history_head = 'out/train_history/' + model_name + tmp
-    log = 'out/log/' + model_name + tmp
 
+'''
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ VGG0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['VGG0','vgg0',*allModelName]:
+    # scalar
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
 
+    # choose model & set model param & get model_name
+    Model = deepm.model_all['VGG0']
+    conv_param_list = [[64, 3, 1, ], [128, 3, 1, ], [256, 3, 1, 'same'], [512, 3, 1, ], [512, 3, 1, ]]
+    dropout_dense_rate = 0.2
+    model_param = {'conv_param_list': conv_param_list, 'dropout_dense_rate': dropout_dense_rate, 'out_units': 1,
+                   'out_act': None}
+    model_name = 'vgg0/'
+
+# got to train
+tmp = fp.getSnpLabel_mes(input_file, label_file)  # 获取snp与label文件信息以创建各类out的头目录
+ckpt_head = 'out/checkpoint/' + model_name + tmp
+save_history_head = 'out/train_history/' + model_name + tmp
+log = 'out/log/' + model_name + tmp + 'a.log'
 
 #trainer
 trainer = tc.Train()

@@ -1,40 +1,22 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-ALPHA = 4
-BETA = 6
-SITA = 0.3
-# 定义分数函数
-def calculate_score(a, b):
-    return (ALPHA * a + BETA * b) / (1 + SITA*abs(a - b))
+import  os
+def log(self, path, way='a'):
+    '''
 
-# def calculate_score(a,b):
-#     return ALPHA * a + BETA * b - SITA*(abs(a-b))
+    :param path:
+    :param way: 记录在日志中的方式，默认为追加至文件末尾'a',-----'c','r'
+    :return:
+    '''
+    os.makedirs(os.path.dirname(path), exist_ok=True)
 
-# 生成 a 和 b 的值范围
-a_values = np.linspace(0, 1, 100)
-b_values = np.linspace(0, 1, 100)
 
-# 创建网格
-A, B = np.meshgrid(a_values, b_values)
+    with open(path, way) as file:
+        if way == 'a':  # 追加内容前换行
+            file.write('\n')
+        values = []
+        for key, value in self.predMes.items():
+            if key == 'result': continue
+            values.append(str(value) + '\t')
+        file.writelines(values)
+    print('write log done as \'{0}\' ! log at:{1}'.format(way, path))
 
-# 计算每个点的分数
-scores = calculate_score(A, B)
-# 创建图形
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
 
-# 绘制三维表面图
-surf = ax.plot_surface(A, B, scores, cmap='viridis', edgecolor='none')
-
-# 添加颜色条
-fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
-
-# 设置标签
-ax.set_xlabel('a')
-ax.set_ylabel('b')
-ax.set_zlabel('Score')
-ax.set_title('Score Function 3D Plot')
-
-# 显示图形
-plt.show()
