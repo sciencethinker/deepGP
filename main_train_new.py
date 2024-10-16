@@ -30,7 +30,7 @@ allModelName = ['a','all']
 ''' choose model '''
 if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 
-epoch = 10 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
+epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
 lr_init = 0.0001 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
 batch_val = 256 if 'batch_val' not in sysargs.keys() else int(sysargs['batch_val'])
@@ -40,7 +40,7 @@ seed = 10
 shuffle_or_not = True
 shuffle_size = 540
 cross_fold = 10
-choose_fold = [0] #10折->0:9 始终从0开始
+choose_fold = [0,1] #10折->0:9 始终从0开始
 # choose_fold = [0,1,2,3,4,5,6,7,8,9]
 
 '''
@@ -158,6 +158,12 @@ trainer.set_Model(Model)
 trainer.cross_validation(param_model=model_param,ckpt_head=ckpt_head,fold_num=cross_fold,range_fold=choose_fold,
                          epoch=epoch,batch_t=batch,batch_v=batch_val,if_pred=True,if_saveHis=True,
                          save_history_head=save_history_head,save_log=log)
+
+
+
+
+
+
 
 
 

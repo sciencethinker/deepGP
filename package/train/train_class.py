@@ -10,8 +10,10 @@ import time
 import package.train.callbacks as callbacks
 import package.train.compile as compile
 import package.out_process.predictFuc as pred
+
 LR = 0.0001
-OPTIMIZER = tf.keras.optimizers.Adam(learning_rate=LR)
+Param_opt = {"learning_rate":LR} #未来optimizer接口
+OPTIMIZER = tf.keras.optimizers.Adam
 LOSS = tf.keras.losses.MeanSquaredError()
 METRICS = [compile.Corralation(),]
 CALLBACK_LIST = [callbacks.CkptCorSaveSchedule()]
@@ -33,7 +35,7 @@ class Train:
     def __init__(self):
         #默认设置
         #compile
-        self.optimizer = OPTIMIZER
+        self.Optimizer = OPTIMIZER
         self.loss = LOSS
         self.metric_list = METRICS
         #callback
@@ -119,12 +121,13 @@ class Train:
             #time measure
             start = time.time()
 
+            optimzer = self.optimizer_return(param=Param_opt)
             model = self.model_init(param_model) if param_model!=None else self.Model()
 
             #history:dict {'loss','metrics','loss_val','metrics_val','time_total','time_each'}
             history = self.go_train(model=model,data_train=data_train,data_val=data_val,
                                     epoch=epoch,batch_t=batch_t,batch_v=batch_v,if_pred=if_pred,if_fit=if_fit,
-                                    save_log=save_log,ckpt_path=ckpt_path,*callback_args,**callback_kwargs)
+                                    save_log=save_log,ckpt_path=ckpt_path,optimizer=optimzer,*callback_args,**callback_kwargs)
 
             #time
             end = time.time()
@@ -157,7 +160,7 @@ class Train:
     def go_train(self,model,data_train,batch_t,
                  batch_v,data_val=None,epoch=1,
                  if_pred=True,save_log=None,ckpt_path=None,
-                 is_fit=True,*callback_args,**callback_kwargs):
+                 is_fit=True,optimizer = None,*callback_args,**callback_kwargs):
         '''
 
         :param model: tf.Module or tf.keras.models.Model
@@ -180,7 +183,8 @@ class Train:
         for cb in self.callback_list:
             try:
                 #对具有train_env_compile方法的callback调用该方法，传入所需参数
-                cb.train_env_compile(model=model,data_train=data_train,data_val=data_val,ckpt=ckpt_path,*callback_args,**callback_kwargs)
+                cb.train_env_compile(model=model,data_train=data_train,data_val=data_val,ckpt=ckpt_path,
+                                     *callback_args,**callback_kwargs)
             except AttributeError as e:
                 pass
             finally:pass
@@ -189,9 +193,9 @@ class Train:
         if is_fit:
 
             history = self._train_tf_fit(model=model, data_train=data_train, batch_t=batch_t, batch_v=batch_v,data_val=data_val,
-                                         epoch=epoch,ckpt_path=ckpt_path, if_pred=if_pred,*callback_args,**callback_kwargs)
+                                         epoch=epoch,ckpt_path=ckpt_path, if_pred=if_pred,optimzer=optimizer,*callback_args,**callback_kwargs)
         else:history = self._train_tf(model=model, data_train=data_train, batch_t=batch_t, batch_v=batch_v,data_val=data_val,
-                                         epoch=epoch,ckpt_path=ckpt_path, if_pred=if_pred,*callback_args,**callback_kwargs)
+                                         epoch=epoch,ckpt_path=ckpt_path, if_pred=if_pred,optimzer=optimizer,*callback_args,**callback_kwargs)
 
         if if_pred:
             print('****** estimate current model *******')
@@ -207,13 +211,14 @@ class Train:
                 preder.load_data(x = data_train[0],y = data_train[1],mes='train')
                 preder.estimate(perNum=batch_t)
                 preder.log(save_log)
+                preder = None
                 print('***** estimatation done! log at :{} *****'.format(save_log))
             except Exception as e:
                 print('train.go_train.EstimateWarning！faild to estimate model ！\nreason:{}'.format(e),file=sys.stderr)
         return history
 
 
-    def _train_tf_fit(self,model,data_train,data_val,epoch,batch_t,batch_v,ckpt_path,*args,**kwargs):
+    def _train_tf_fit(self,model,data_train,data_val,epoch,batch_t,batch_v,ckpt_path,optimzer,*args,**kwargs):
         '''
         基于keras的fit框架进行的训练流程
         :param model:
@@ -226,10 +231,9 @@ class Train:
         '''compile'''
         x_train,y_train = data_train
         x_val,y_val = data_val
-        model.compile(optimizer=self.optimizer,
+        model.compile(optimizer=optimzer,
                   loss=self.loss,
                   metrics=self.metric_list)
-
 
         if os.path.exists(ckpt_path+'.index'):
             print('{0}\n{0}\n{0}'.format('*********************** load model *****************************'))
@@ -242,7 +246,7 @@ class Train:
 
         return history.history
 
-    def _train_tf(self,model,data_train,data_val,epoch,batch_t,batch_v,ckpt_path,if_pred,*args,**kwargs):
+    def _train_tf(self,model,data_train,data_val,epoch,batch_t,batch_v,ckpt_path,if_pred,optimizer,*args,**kwargs):
         '''
         尚未开发
         :param args:
@@ -250,8 +254,6 @@ class Train:
         :return:
         '''
         pass
-
-
 
     def __call__(self,if_cross, *args, **kwargs):
         if if_cross:
@@ -306,6 +308,15 @@ class Train:
                 value_str = ' '.join(map(str, history[str(key)]))
                 file.writelines(str(key) + ' ' + value_str + '\n')
         print('save dict at: {}'.format(save_path))
+
+    def optimizer_return(self,param = {'learning_rate':LR}):
+        '''
+
+        :param param: {"optimizer_param":param}
+        :return:
+        '''
+        optimizer = self.Optimizer(**param)
+        return optimizer
 
 
 
