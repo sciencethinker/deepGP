@@ -22,6 +22,8 @@
     构建callbacks :->  CkptCorSaveSchedule
 2.1.1
     main_train_new 实现ChrAtten0训练模块
+2.2.0
+    解决cross无法进行交叉训练的问题！同时再新框架下train_struct搭建了VGG0训练API
 
 
 

@@ -50,7 +50,7 @@ choose_fold = [0,1] #10折->0:9 始终从0开始
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
 #label_file = 'data/label/laOrig_10fat_5021.phen'
-label_file = 'data/label/laOrig_10age_5021.phen'
+label_file = 'data/label/la13478_10age_5460.phen'
 
 data_dict = {}
 x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
