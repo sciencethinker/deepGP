@@ -204,18 +204,18 @@ class Train:
                 #val
                 preder = pred.Prediction(model,name='save_model',model_mes='cross{}'.format(self.fold))
                 preder.load_weights(ckpt_path)
-                preder.load_data(x=data_val[0],y=data_val[1],mes='validation')
+                preder.load_data(x=data_val[0],y=data_val[1],mes='val_c{}'.format(self.fold))
                 preder.estimate(perNum=batch_v)
                 preder.log(save_log)
 
                 preder = None
 
                 #train
-                preder = pred.Prediction(model,name='save_model',model_mes='cross{}'.format(self.fold))
-                preder.load_weights(ckpt_path)
-                preder.load_data(x = data_train[0],y = data_train[1],mes='train')
-                preder.estimate(perNum=batch_t)
-                preder.log(save_log)
+                # preder = pred.Prediction(model,name='save_model',model_mes='cross{}'.format(self.fold))
+                # preder.load_weights(ckpt_path)
+                # preder.load_data(x = data_train[0],y = data_train[1],mes='train_c{}'.format(self.fold))
+                # preder.estimate(perNum=batch_t)
+                # preder.log(save_log)
 
                 print('***** estimatation done! log at :{} *****'.format(save_log))
             except Exception as e:
