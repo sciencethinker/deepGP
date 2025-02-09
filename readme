@@ -1,12 +1,66 @@
 1.项目结构说明
+
+
 data
-    '''存储数据集，snp数据&label数据'''
+    '''
+    存储数据集，snp数据&label数据
+    该项目使用数据为data中的.raw .phen文件作为数据集与标签集，前者记录群体中个体的snp数据，后者记录对应个体某性状表型值
+    '''
+
+
 out
-    '''存储各类输出，em： ckpt，history，pic，log'''
+    '''
+    存储各类输出，em： ckpt，history，pic，log
+    1.chekpoint
+    #存储不同model参数，根据model结构，model针对数据集与标签集类别，model交叉训练批次进行分类
+    2.log
+    #记录指定model对指定数据集的预测准确度
+    #某次model预测过程中，训练id 数据集标签集信息(str) 预测时间 用时 平均预测时间相关信息 相关性 预测误差相关信息 对应标签集预测结果
+    3.train_history
+    #记录指定model针对某数据集的训练效果变化
+    #model对训练集与验证集的预测效果，相关性，残差等
+    4. train_log  服务器端，记录训练过程程序的控制台输出，记录训练流程程序运行完成度与model对数据集预测效果，同train_history 类似
+    '''
 
 package
-
+    '''
+    #输出数据处理工具包，图像绘制，模型性能评估等功能
     out_process
+        draw
+        #绘图API函数（未开发25.1.20）
+        predictFuc
+        #模型评估API函数
+    data_process
+        data_set
+        #对原初类型数据集进行处理，获取model所需数据集(输入 标签)
+        file_process
+    system_process
+    #操作系统相关操作
+    model
+    #各类model
+    train
+    #基于tensorflow模型训练架构进行构建
+        callbcaks
+        #回调函数 在训练进程的不同节点上回调model以实现训练检测与调控
+        compile
+        #配置model的损失类与指标类
+        train_class
+        #训练模块类 构建的模块类用于创建训练实例 通过该实例实现对model的创建以及针对某批次数据集全流程自动化训练
+        train_struct
+
+
+    utils
+    #工具包，提供基本数学函数(相关系数)以及未来传统算法接口
+        gblup
+        staticProc
+        #统计函数
+        timeProcess
+        #程序应用是时间函数
+    '''
+
+
+
+
     system_process
     utils
     model
@@ -37,6 +91,7 @@ label：label.phen文件
     data/label/100back_10100011_5460.phen
 
 out：
+    #model文件存储
     checkpoint .data & .index 文件
         format：
         out/checkpoint/model/inCla_feature_laCla_num/cross_i/variables/ .index & .data_1_
@@ -47,8 +102,18 @@ out：
 
 
 train_history .txt文件
+    loss 5.18 ...
+    corralation 0.19 ...
+    val_loss 1.92 ...
+    val_corralation -0.44 ...
+    time_total 36
+    time_each 36.0
 
 log .txt文件
+    id              name      (input_shape,label_shape)     cur_time                    total_time   (per_mean,per_std)  cor     loss[mean std]
+    9632326297      val_c0  ((487, 46731), (487, 1))        Thu_Oct_17_00:40:17_2024        5.8     (0.0955, 0.016)      0.122   [0.76 0.92]
+    1485123688      val_c1  ((487, 46731), (487, 1))        Thu_Oct_17_02:51:16_2024        0.7     (0.1, 0.0219)        0.133   [0.68 0.61]
+
 
 pic_loss
 

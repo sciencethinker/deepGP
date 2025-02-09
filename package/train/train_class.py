@@ -5,7 +5,6 @@ import os
 import sys
 
 import tensorflow as tf
-import numpy as np
 import time
 import package.train.callbacks as callbacks
 import package.train.compile as compile
@@ -13,10 +12,10 @@ import package.out_process.predictFuc as pred
 
 LR = 0.0001
 Param_opt = {"learning_rate":LR} #未来optimizer接口
-OPTIMIZER = tf.keras.optimizers.Adam
-LOSS = tf.keras.losses.MeanSquaredError()
-METRICS = [compile.Corralation(),]
-CALLBACK_LIST = [callbacks.CkptCorSaveSchedule()]
+OPTIMIZER = tf.keras.optimizers.Adam   #class
+LOSS = tf.keras.losses.MeanSquaredError() #instance list
+METRICS = [compile.Corralation(),] #instance list
+CALLBACK_LIST = [callbacks.CkptCorSaveSchedule()] #instance list
 class Train:
     '''
     Train instance useage:
@@ -82,8 +81,8 @@ class Train:
                          *callback_args,**callback_kwargs):
         '''
         交叉验证API
-        :param param_model:
-        :param ckpt_head:
+        :param param_model:构建model实例所需参数
+        :param ckpt_head:ckpt head
         :param fold_num:
         :param range_fold:
         :param epoch:
@@ -110,9 +109,8 @@ class Train:
             data_train = None
             data_val = None
             #跳过未选择的fold
-            if fold not in range_fold:continue
             data_train,data_val = next(data_gen)
-            #只在必要时产生data
+            if fold not in range_fold:continue
 
             print('{:@^50}'.format(' cross validation fold:%s ' % fold))
             ckpt_path = ckpt_head + 'corss{}/model.ckpt'.format(fold)
@@ -121,6 +119,7 @@ class Train:
             #time measure
             start = time.time()
 
+            #构建model实例及其对应优化器
             optimzer = self.optimizer_return(param=Param_opt)
             model = self.model_init(param_model) if param_model!=None else self.Model()
 
@@ -269,7 +268,7 @@ class Train:
     def make_cross_data(self,k):
         '''
         data 要求[Tensor_dataSet(n,...),Tensor_label(n,...)]
-        :param k: 交叉数两
+        :param k: 交叉批数
         :return: 迭代器对象，使用next函数调用，每次返回单个data数据集
         '''
         if self.data == None:

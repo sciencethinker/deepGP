@@ -32,7 +32,7 @@ if platform.system() == 'Windows':sysargs['model'] = 'sa0'
 
 epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
-lr_init = 0.0001 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
+lr_init = 0.01 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
 batch_val = 256 if 'batch_val' not in sysargs.keys() else int(sysargs['batch_val'])
 
 #data shuffle seed
@@ -50,7 +50,11 @@ choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
 #label_file = 'data/label/laOrig_10fat_5021.phen'
-label_file = 'data/label/la13478_10age_5460.phen'
+# label_file = 'data/label/la13478_15age_5460.phen'
+# label_file = 'data/label/la13478_10fat_5460.phen'
+label_file = 'data/label/la13478_15fat_5460_.phen'
+
+
 
 data_dict = {}
 x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id

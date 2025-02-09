@@ -22,7 +22,7 @@ SAVE_FLOAT = 2 #保留有效数字位数
 ALPHA = 4
 GAMMA = 6
 SITA = 0.3
-THRESHOLD_PORTION_CALLBACK = 0.001
+THRESHOLD_PORTION_CALLBACK = 0.5 #？
 
 def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
     '''
@@ -38,6 +38,15 @@ def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
     return call_ckpt
 
 def monitor_meanCor(a,b,alpha=ALPHA,gamma=GAMMA,sita=SITA):
+    '''
+    平均相关系数监测器 返回与对象a b 相关的非线性加权平均值 res
+    :param a:float
+    :param b:float
+    :param alpha:
+    :param gamma:
+    :param sita:
+    :return:float
+    '''
     assert a != None or b != None, 'one of a or b must unequal None!'
     if a == None: res = b
     if b == None: res = a
@@ -47,7 +56,7 @@ def monitor_meanCor(a,b,alpha=ALPHA,gamma=GAMMA,sita=SITA):
 
 def cor_schedule(cor_current,cor_best):
     '''
-    判断当前相关系数是否为由于最佳相关系数组合
+    判断当前相关系数是否为最佳相关系数组合
     :param cor_current: 元组(cor_current_train,cor_current_val)
     :param cor_best: 元组(cor_best_train,cor_best_val)
     :return: bool True or False
@@ -60,7 +69,7 @@ def cor_schedule(cor_current,cor_best):
 
 class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
     '''
-    基于模型在训练集与测试集上相关系数关系制定的模型保存逻辑
+    基于模型在训练集与测试集上相关系数关系制定的模型保存逻辑类
     1.模型在当前epoch的data_val上表现较最佳cor更好时，进行训练集验证
     2.基于cor_schedule进行模型保存判断
     '''
@@ -73,7 +82,7 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
         self.data_val = data_val #(x_val,y_val)
         self.cor_schedule = cor_schedule
         #init
-        self.batch_train = batch_train #评估相关性时的预测
+        self.batch_train = batch_train #评估相关性时batch
         self.batch_val = batch_val if batch_val != None else batch_train
         self.threshold_portion = THRESHOLD_PORTION_CALLBACK #判定是否进行验证的cor_var阈值比
 
@@ -87,7 +96,7 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
         在验证集相关系数较高时进行评估
         在log_val达到
         :param epoch:
-        :param logs:{loss_batch,metircs_batch,loss_val_batch,metrics_val_batch}
+        :param logs:{loss_batch:...,metircs_batch:...,loss_val_batch:...,metrics_val_batch:...}  4个浮点数
         :return:
         '''
         cor_current_val = self.evaluate_batch(self.data_val,batch=self.batch_val)
@@ -136,8 +145,7 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
     def train_env_compile(self,**kwargs):
         '''
         获取Train类实例的环境参数的专属方法
-        目的是在fit时无法获取的参数通过提前方式获得
-        :return:
+        目的是提前获取fit时无法获取的参数
         '''
         self.data_train = kwargs['data_train']
         self.data_val = kwargs['data_val']
@@ -151,11 +159,14 @@ class CkptCorSaveSchedule(tf.keras.callbacks.Callback):
 
 #学习率随超过阈值的相关系数增大而减小
 class LearningRateSchdule(tf.keras.callbacks.Callback):
+    '''
+    基于训练过程相关系数动态变化的学习率调整类
+    '''
     def __init__(self,threshold,metric,func):
         super(LearningRateSchdule, self).__init__()
-        self.threshold = threshold
         self.metrics = metric
-        self.func = func
+        self.threshold = threshold #与func计算的epoch表现得分相关的乘数阈值
+        self.func = func #func 计算当前epoch表现得分 param:logs[name] ...
         self.best = -np.inf
         self.switch = False
 
@@ -164,10 +175,10 @@ class LearningRateSchdule(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         metrics = [logs[name] for name in self.metrics]
         current = self.func(*metrics)
-        if current >= self.threshold :
+        if current >= self.threshold*self.best :
             self.switch = True
             scheduled_lr = self.scheduled(tf.keras.backend.get_value(self.model.optimizer.learning_rate))
-            tf.keras.backend.set_value(self.model.optimizer.lr, scheduled_lr)
+            tf.keras.backend.set_value(self.model.optimizer.lr, scheduled_lr) #将self.model.optimizer.lr 替换为 scheduled_lr
             print('')
         else :self.switch = False
 
@@ -177,11 +188,11 @@ class LearningRateSchdule(tf.keras.callbacks.Callback):
 class EarlyStop(tf.keras.callbacks.Callback):
     def __init__(self,choose_mertrics,judge_func,patience=20):
         super(EarlyStop, self).__init__()
-        self.best = np.inf
+        self.best = -np.inf
         self.wait = 0
         self.patience = patience
         self.metics = choose_mertrics
-        self.judge_func = judge_func
+        self.judge_func = judge_func #评分函数 input为epoch结束时传入的log参数
 
     def on_epoch_end(self, epoch, logs=None):
         metrics = [logs[metric] for metric in self.metics]
