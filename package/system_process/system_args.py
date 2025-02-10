@@ -2,6 +2,7 @@
 用于linux系统交互
 '''
 import sys
+import tensorflow as tf
 def getArgs():
     '''
     获取传入python文件的参数
@@ -27,4 +28,22 @@ def getArgs():
 
     print('***************** system args:{} *****************'.format(argMap))
     return argMap
+
+
+def gpu_choose(chos):
+    '''
+    受限与当前框架条件，单个model只能在单个gpu上训练，通过整数选定指定gpu设备
+    :chos : int
+    '''
+
+    gpus = tf.config.list_physical_devices('GPU') #返回gpu名称列表
+    if gpus:
+        try:
+            tf.config.set_visible_devices(gpus[chos], 'GPU')
+            print('cunrent gpus list\n',*gpus,'\nchoose gpus \n',gpus[chos])
+        except RuntimeError as e:
+            print(e)
+        except Exception as e:
+            print(e)
+
 

@@ -11,6 +11,8 @@ python main.train --model model_name --epoch e --batch batch_size --lr lr_rate
 --lr
 *** recommend use nohup command to train ***
 nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
+nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <x> > train.log 2>&1 &
+
 ##########################################################################################
 
 '''
@@ -24,11 +26,23 @@ import package.train.train_class as tc
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ super param @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
+
+'''
+gpu调用调试
+同一脚本可以调用不同指定gpu
+'''
+
+
+
+
 sysargs = sy.getArgs()
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
 if platform.system() == 'Windows':sysargs['model'] = 'sa0'
+if 'gpu' in sysargs.keys():
+    gpu = int(sysargs['gpu'])
+    sy.gpu_choose(gpu)
 
 epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
