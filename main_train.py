@@ -16,17 +16,21 @@ nohup python main_train.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <
 ##########################################################################################
 
 '''
+import package.system_process.system_args as sy
+import os
+sysargs = sy.getArgs()
+os.environ["CUDA_VISIBLE_DEVICES"] = sysargs['gpu']
 import tensorflow as tf
 import platform
 import package.data_process.file_process as fp
-import package.system_process.system_args as sy
 import package.data_process.data_set as ds
 import package.model.model as deepm
 import package.train.train_struct as ts
+
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ super param @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
-sysargs = sy.getArgs()
+
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
