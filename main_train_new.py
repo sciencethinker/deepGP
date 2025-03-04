@@ -65,11 +65,15 @@ choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
 #test
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
+
 #label_file = 'data/label/laOrig_10fat_5021.phen'
-# label_file = 'data/label/la13478_15age_5460.phen'
+# label_file = 'data/label/laOrig_15fat_5021.phen'
+# label_file = 'data/label/laOrig_10age_5021.phen'
+# label_file = 'data/label/laOrig_15age_5021.phen'
 # label_file = 'data/label/la13478_10fat_5460.phen'
 label_file = 'data/label/la13478_15fat_5460_.phen'
-
+# label_file = 'data/label/la13478_10age_5460.phen'
+# label_file = 'data/label/la13478_15age_5460.phen'
 
 
 data_dict = {}
