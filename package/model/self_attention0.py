@@ -348,7 +348,7 @@ class ChrAtten0(tf.keras.Model):
         :param bocks_num:
         '''
         super(ChrAtten0, self).__init__()
-        #全局基因组卷积层，并使用一层全连接层转换为model
+        #全局基因组卷积层，并使用一层全连接层转换为与编码向量shape相同的向量
         self.global_conv = [cnn_0.VggBlock(*param) for param in conv_param_list]
         self.global_conv.append(tf.keras.layers.Flatten())
         self.global_conv.append(tf.keras.layers.Dense(chr_emb_units))
@@ -374,6 +374,13 @@ class ChrAtten0(tf.keras.Model):
         self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1],name='fpAL')
 
     def call(self, inputs, training=None, mask=None):
+        '''
+        charAtten forward
+        :param inputs: n,m
+        :param training:
+        :param mask:
+        :return:
+        '''
         #全局卷积编码
         n,length = inputs.shape
         x_conv = tf.expand_dims(inputs,axis=-1) #在最后一维增加1维，成为3Dtensor
@@ -381,6 +388,7 @@ class ChrAtten0(tf.keras.Model):
             x_conv = conv(x_conv)
         n,d_model = x_conv.shape
         x_conv = tf.expand_dims(x_conv,axis=1) #将二维tensor x_conv转换为序列长度为1,编码长度为d_model的三维tensor
+
         #染色体向量编码
         x = self.emb(inputs)
 

@@ -19,7 +19,8 @@ nohup python main_train.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <
 import package.system_process.system_args as sy
 import os
 sysargs = sy.getArgs()
-os.environ["CUDA_VISIBLE_DEVICES"] = sysargs['gpu']
+# os.environ["CUDA_VISIBLE_DEVICES"] = sysargs['gpu']
+os.environ["CUDA_VISIBLE_DEVICES"] = '0' if 'gpu' not in sysargs.keys() else sysargs['gpu']
 import tensorflow as tf
 import platform
 import package.data_process.file_process as fp
@@ -34,7 +35,7 @@ import package.train.train_struct as ts
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'sa0'
+if platform.system() == 'Windows':sysargs['model'] = 'vgg0'
 
 epoch = 1 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -179,7 +180,9 @@ if sysargs['model'] in ['vgg0','VGG0','Vgg0',*allModelName]:
 
     #choose model & set model param & get model_name
     Model = deepm.model_all['VGG0']
-    conv_param_list = [[64,3,1,],[128,3,1,],[256,3,1,'same'],[512,3,1,],[512,3,1,]]
+    conv_param_list = [[64,3,1,],[128,3,1,],[256,3,1,'same'],[512,3,1,],[512,3,1,]] #构建VggBlok模块用，[[filters,kernel_size,strides,pading],...]
+    #test
+    conv_param_list = [[64, 3, 1, ]]
     dropout_dense_rate = 0.2
     model_param = {'conv_param_list':conv_param_list,'dropout_dense_rate':dropout_dense_rate,'out_units':1,'out_act':None}
     model_name = 'vgg0/'

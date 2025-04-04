@@ -40,7 +40,7 @@ def dict_save(history, save_path):
 def train(model,data_train,data_val,epoch,batch,
                  lr_init,
                  h = 1,
-                 validation_batch_size = None,
+                 validation_batch_size = 256,
                  optimizer=tf.keras.optimizers.Adam,
                  shuffle_or_not=True,shuffle_size = 1024,ckpt_path='checkPoint/testCheckpoint/test'):
     ''' data '''
@@ -110,6 +110,7 @@ def cross_validation_singleThreshold(data_dict, Model,
             model = Model()
 
         data_train, data_val = data_dict[str(i)]
+
 
         history = train(model, data_train, data_val, epoch, batch, lr,validation_batch_size,
                         shuffle_or_not=shuffle_or_not, shuffle_size=shuffle_size,

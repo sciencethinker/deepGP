@@ -99,8 +99,10 @@ class ChrEmbed(tf.keras.layers.Layer):
 
 
     def call(self, inputs, *args, **kwargs):
+        #分解x 为一个含有h各shape = [n,m_i]向量的列表
         x_list = tf.split(inputs,self.snp2chr_list,axis=1)
         emb_list = []
+        '''难道不能使用张量操作替代for循环吗?'''
         for i,dense in enumerate(self.denses):
             emb = tf.expand_dims(dense(x_list[i]),axis=1)#添加序列维度
             emb_list.append(emb)

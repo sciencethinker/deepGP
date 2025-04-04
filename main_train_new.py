@@ -21,7 +21,8 @@ import platform
 import package.system_process.system_args as sy
 sysargs = sy.getArgs()
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = sysargs['gpu']
+# os.environ["CUDA_VISIBLE_DEVICES"] = sysargs['gpu']
+os.environ["CUDA_VISIBLE_DEVICES"] = '0' if 'gpu' not in sysargs.keys() else sysargs['gpu']
 import package.data_process.file_process as fp
 import package.data_process.data_set as ds
 import package.model.model as deepm
@@ -44,7 +45,7 @@ gpu调用调试
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'sa0'
+if platform.system() == 'Windows':sysargs['model'] = 'vgg0'
 
 epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -66,12 +67,12 @@ choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
 
-#label_file = 'data/label/laOrig_10fat_5021.phen'
+label_file = 'data/label/laOrig_10fat_5021.phen'
 # label_file = 'data/label/laOrig_15fat_5021.phen'
 # label_file = 'data/label/laOrig_10age_5021.phen'
 # label_file = 'data/label/laOrig_15age_5021.phen'
 # label_file = 'data/label/la13478_10fat_5460.phen'
-label_file = 'data/label/la13478_15fat_5460_.phen'
+# label_file = 'data/label/la13478_15fat_5460_.phen'
 # label_file = 'data/label/la13478_10age_5460.phen'
 # label_file = 'data/label/la13478_15age_5460.phen'
 
@@ -124,6 +125,7 @@ if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
     # choose model & set model param & get model_name
     Model = deepm.model_all['ChrAtten0']
     # snp2chr_list: int型列表，给定不同染色体对应的snp位点数量对应chr之间的所属关系
+    # 注意snp位点不可以改变！若不使用s1基因序列，则需要重新调试！
     snp2chr_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368, 1241, 1383, 1021, 2643, 2468, 2159,
                     1372, 1094, 981, 2153]
     maxlen = 21
@@ -160,6 +162,7 @@ if sysargs['model'] in ['VGG0','vgg0',*allModelName]:
     stddev = tf.math.reduce_std(y_all)
     mean = tf.reduce_mean(y_all)
     y_all = (y_all - mean) / stddev
+    x_all = tf.expand_dims(x_all,2) #[n,m] -> [n,m,1]
 
     # choose model & set model param & get model_name
     Model = deepm.model_all['VGG0']

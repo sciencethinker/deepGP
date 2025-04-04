@@ -15,7 +15,8 @@ class VggBlock(tf.keras.layers.Layer):
         self.c0_1 = tf.keras.layers.Conv1D(filters,kernel_size,strides,padding)
         self.b0_1 = tf.keras.layers.BatchNormalization()
         self.a0_1 = tf.keras.layers.Activation(activation)
-        self.p0 = tf.keras.layers.MaxPool1D(pool_size=2,strides=2,padding='same')
+        self.p0 = tf.keras.layers.MaxPool1D(pool_size=2,strides=2,padding='same') #!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # self.p0 = tf.keras.layers.MaxPool1D(pool_size=2,strides=2,) #!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.d0 = tf.keras.layers.Dropout(dropout_rate)
         self.if_dropout = if_dropout
     def call(self, inputs, *args, **kwargs):
@@ -155,3 +156,4 @@ if __name__ == "__main__":
     vgg16.compile(loss=tf.keras.losses.MeanSquaredError())
     vgg16.fit(x,y,batch_size=32,epochs=1)
     vgg16.summary()
+
