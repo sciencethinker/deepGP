@@ -11,7 +11,7 @@ python main.train --model model_name --epoch e --batch batch_size --lr lr_rate
 --lr
 *** recommend use nohup command to train ***
 nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
-nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <x> > train.log 2>&1 &
+nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <x> --label <0/1/2/.../7> > train.log 2>&1 &
 
 ##########################################################################################
 
@@ -58,7 +58,8 @@ shuffle_or_not = True
 shuffle_size = 540
 cross_fold = 10
 choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
-# choose_fold = [0,1,2,3,4,5,6,7,8,9]
+
+# choose_fold = [9]
 
 '''
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ data import @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -67,7 +68,22 @@ choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
 #data_file_dict:dict 确定每次模型训练文件有哪些
 input_file = 'data/input/s1_50k_5224.raw'
 
-label_file = 'data/label/laOrig_10fat_5021.phen'
+
+label_dict = {
+    '0':'data/label/laOrig_10fat_5021.phen',
+    '1':'data/label/laOrig_15fat_5021.phen',
+    '2':'data/label/laOrig_15fat_5021.phen',
+    '3':'data/label/laOrig_15age_5021.phen',
+    '4':'data/label/la13478_10fat_5460.phen',
+    '5':'data/label/la13478_15fat_5460_.phen',
+    '6':'data/label/la13478_10age_5460.phen',
+    '7':'data/label/la13478_15age_5460.phen'
+              }
+
+label_file_name = None if 'label' not in sysargs.keys() else sysargs['label']
+label_file = label_dict[label_file_name] if label_file_name else 'data/label/laOrig_10fat_5021.phen'
+
+# label_file = 'data/label/laOrig_10fat_5021.phen'
 # label_file = 'data/label/laOrig_15fat_5021.phen'
 # label_file = 'data/label/laOrig_10age_5021.phen'
 # label_file = 'data/label/laOrig_15age_5021.phen'
@@ -75,8 +91,6 @@ label_file = 'data/label/laOrig_10fat_5021.phen'
 # label_file = 'data/label/la13478_15fat_5460_.phen'
 # label_file = 'data/label/la13478_10age_5460.phen'
 # label_file = 'data/label/la13478_15age_5460.phen'
-
-
 data_dict = {}
 x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
 
@@ -167,7 +181,9 @@ if sysargs['model'] in ['VGG0','vgg0',*allModelName]:
     # choose model & set model param & get model_name
     Model = deepm.model_all['VGG0']
     conv_param_list = [[64, 3, 1, ], [128, 3, 1, ], [256, 3, 1, 'same'], [512, 3, 1, ], [512, 3, 1, ]]
-    dropout_dense_rate = 0.2
+    # dropout_dense_rate = 0.2
+    #降低过拟合
+    dropout_dense_rate = 0.45
     model_param = {'conv_param_list': conv_param_list, 'dropout_dense_rate': dropout_dense_rate, 'out_units': 1,
                    'out_act': None}
     model_name = 'vgg0/'

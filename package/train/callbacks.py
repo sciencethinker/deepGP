@@ -19,10 +19,16 @@ import  tensorflow as tf
 import numpy as np
 import package.utils.staticProc as static
 SAVE_FLOAT = 2 #保留有效数字位数
-ALPHA = 4
-GAMMA = 6
-SITA = 0.3
-THRESHOLD_PORTION_CALLBACK = 0.5 #？
+# ALPHA = 4
+# GAMMA = 6
+# SITA = 0.3
+
+#过拟合采用参数
+ALPHA = 0.5
+GAMMA = 4
+SITA = 0.65
+
+THRESHOLD_PORTION_CALLBACK = 0.5 #cor_current_val > (self.cor_val * self.threshold_portion)
 
 def checkpoint(filePath,monitor,save_best=True,save_weight_only=True):
     '''
@@ -51,7 +57,9 @@ def monitor_meanCor(a,b,alpha=ALPHA,gamma=GAMMA,sita=SITA):
     if a == None: res = b
     if b == None: res = a
     if a != None and b != None:
+        #1.一般权重计算
         res = (ALPHA * a + GAMMA * b) / (1 + SITA*abs(a - b))
+
     return res
 
 def cor_schedule(cor_current,cor_best):
@@ -268,9 +276,69 @@ if __name__ == "__main__":
                                 range_fold=[0,2],epoch=10,batch_t=32,batch_v=32,if_pred=True,if_saveHis=True,)
 
 
+    #测试得分函数
+
+    ALPHA = 4
+    GAMMA = 6
+    SITA = 0.3
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Slider
 
 
+    # 定义函数
+    def calculate_res(a, b, ALPHA, GAMMA, SITA):
+        return (ALPHA * a + GAMMA * b) / (1 + SITA * np.abs(a - b))
 
 
+    # 创建网格和初始参数
+    a = np.linspace(0, 1, 100)
+    b = np.linspace(0, 1, 100)
+    A, B = np.meshgrid(a, b)
+    ALPHA_init, GAMMA_init, SITA_init = 1.0, 1.0, 1.0
+    RES = calculate_res(A, B, ALPHA_init, GAMMA_init, SITA_init)
 
+    # 初始化图像
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    surf = ax.plot_surface(A, B, RES, cmap='viridis', edgecolor='none')
+
+    # 设置坐标轴标签和标题
+    ax.set_xlabel('a')
+    ax.set_ylabel('b')
+    ax.set_zlabel('res')
+    ax.set_title('res = (ALPHA*a + GAMMA*b) / (1 + SITA*|a - b|)')
+
+    # 添加参数调节滑块
+    axcolor = 'lightgoldenrodyellow'
+    ax_alpha = plt.axes([0.25, 0.02, 0.65, 0.03], facecolor=axcolor)
+    ax_gamma = plt.axes([0.25, 0.06, 0.65, 0.03], facecolor=axcolor)
+    ax_sita = plt.axes([0.25, 0.10, 0.65, 0.03], facecolor=axcolor)
+
+    slider_alpha = Slider(ax_alpha, 'ALPHA', 0.1, 5.0, valinit=ALPHA_init)
+    slider_gamma = Slider(ax_gamma, 'GAMMA', 0.1, 5.0, valinit=GAMMA_init)
+    slider_sita = Slider(ax_sita, 'SITA', 0.1, 5.0, valinit=SITA_init)
+
+
+    # 更新函数
+    def update(val):
+        alpha = slider_alpha.val
+        gamma = slider_gamma.val
+        sita = slider_sita.val
+        res = calculate_res(A, B, alpha, gamma, sita)
+        ax.clear()
+        surf = ax.plot_surface(A, B, res, cmap='viridis', edgecolor='none')
+        ax.set_xlabel('a')
+        ax.set_ylabel('b')
+        ax.set_zlabel('res')
+        ax.set_title('res = (ALPHA*a + GAMMA*b) / (1 + SITA*|a - b|)')
+        fig.canvas.draw_idle()
+
+
+    slider_alpha.on_changed(update)
+    slider_gamma.on_changed(update)
+    slider_sita.on_changed(update)
+
+    plt.tight_layout()
+    plt.show()
 
