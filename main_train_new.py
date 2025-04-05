@@ -72,7 +72,7 @@ input_file = 'data/input/s1_50k_5224.raw'
 label_dict = {
     '0':'data/label/laOrig_10fat_5021.phen',
     '1':'data/label/laOrig_15fat_5021.phen',
-    '2':'data/label/laOrig_15fat_5021.phen',
+    '2':'data/label/laOrig_10age_5021.phen',
     '3':'data/label/laOrig_15age_5021.phen',
     '4':'data/label/la13478_10fat_5460.phen',
     '5':'data/label/la13478_15fat_5460_.phen',
