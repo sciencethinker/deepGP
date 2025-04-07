@@ -49,7 +49,7 @@ if platform.system() == 'Windows':sysargs['model'] = 'vgg0'
 
 epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
-lr_init = 0.01 if 'lr' not in sysargs.keys() else int(sysargs['lr'])
+lr_init = 0.01 if 'lr' not in sysargs.keys() else float(sysargs['lr'])
 batch_val = 256 if 'batch_val' not in sysargs.keys() else int(sysargs['batch_val'])
 
 #data shuffle seed
