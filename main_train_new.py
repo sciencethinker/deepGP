@@ -148,21 +148,21 @@ if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
     chr_emb_units = 512
     # 4层全连接预测层
     fp_units = [chr_emb_units, int(chr_emb_units * 0.8), int(chr_emb_units * 0.8), 1]
-    fp_drop = 0.2
+    fp_drop = 0.4
     fp_acts = ['relu', 'relu', 'relu', None]
     # self_attention units & heads
     heads = 8
     atten_units = chr_emb_units
     full_units = [int(chr_emb_units * 0.8), chr_emb_units]
 
-    dropout_dense_rate = 0.2
+    dropout_dense_rate = 0.35
     model_param = {'conv_param_list': conv_param_list,
                    'snp2chr_list': snp2chr_list, 'chr_emb_units': chr_emb_units,
                    'maxlen': maxlen,
                    'fp_units': fp_units, 'fp_acts': fp_acts, 'fp_drop': fp_drop,
                    'atten_units': atten_units, 'multi_head': heads, 'use_bais': True,
                    'full_units': full_units, 'full_act': ['relu', None],
-                   'full_dropout_rates': [0.2, 0.2],
+                   'full_dropout_rates': [0.3, 0.3],
                    'attention_initializer': None,
                    'pos_CONSTANT': 10000,
                    'blocks_num': 8}
