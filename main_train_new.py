@@ -57,7 +57,8 @@ seed = 10
 shuffle_or_not = True
 shuffle_size = 540
 cross_fold = 10
-choose_fold = [0,1,2,3,4,5,6,7,8,9] #10折->0:9 始终从0开始
+choose_crosses = None if 'cf' not in sysargs.keys() else [int(i) for i in str.split(str.strip(sysargs['cf'],'[]'),',')]
+choose_fold = choose_crosses if choose_crosses else [0,1,2,3,4,5,6,7,8,9]  #10折->0:9 始终从0开始
 
 # choose_fold = [9]
 
