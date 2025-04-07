@@ -11,7 +11,7 @@ python main.train --model model_name --epoch e --batch batch_size --lr lr_rate
 --lr
 *** recommend use nohup command to train ***
 nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> > train.log 2>&1 &
-nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <x> --label <0/1/2/.../7> > train.log 2>&1 &
+nohup python main_train_new.py --model <m> --epoch <e> --batch <b> --lr <lr> --gpu <x> --label <0/1/2/.../7> --cf <[1,2,3]>> train.log 2>&1 &
 
 ##########################################################################################
 
@@ -184,7 +184,7 @@ if sysargs['model'] in ['VGG0','vgg0',*allModelName]:
     conv_param_list = [[64, 3, 1, ], [128, 3, 1, ], [256, 3, 1, 'same'], [512, 3, 1, ], [512, 3, 1, ]]
     # dropout_dense_rate = 0.2
     #降低过拟合
-    dropout_dense_rate = 0.45
+    dropout_dense_rate = 0.6
     model_param = {'conv_param_list': conv_param_list, 'dropout_dense_rate': dropout_dense_rate, 'out_units': 1,
                    'out_act': None}
     model_name = 'vgg0/'
