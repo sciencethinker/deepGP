@@ -109,6 +109,42 @@ class ChrEmbed(tf.keras.layers.Layer):
         embs = tf.concat(emb_list,1) #在第1维(序列维度)进行合并
         return embs
 
+class ChrEmbed1(tf.keras.layers.Layer):
+    def __init__(self,snp2chr_list,units,dropout_rate=0.4,activation=None):
+        '''
+
+        :param snp2chr_list: int型列表，给定不同染色体对应的snp位点数量及其chr之间的位置关系
+        :param units: 将各染色体编码至相同空间
+        :param activation: 是否使用指定激活函数
+        '''
+        super(ChrEmbed1, self).__init__()
+        self.snp2chr_list = snp2chr_list
+        self.denses = []
+        self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
+        #创建不同染色体对应的编码层，映射至相同向量子空间,构建三层的前向传播链
+        for i,chr_num in enumerate(self.snp2chr_list):
+            self.denses.append([tf.keras.layers.Dense(units,activation=activation,name='chr{}_0'.format(i)),
+                                tf.keras.layers.Dense(units,activation=activation,name='chr{}_1'.format(i)),
+                                tf.keras.layers.Dense(units,activation=activation,name='chr{}_2'.format(i))])
+
+
+
+    def call(self, inputs, *args, **kwargs):
+        #分解x 为一个含有h个shape = [n,m_i]向量的列表
+        x_list = tf.split(inputs,self.snp2chr_list,axis=1)
+        emb_list = []
+        '''难道不能使用张量操作替代for循环吗?'''
+        for i,dense in enumerate(self.denses):
+            y = dense[0](x_list[i])
+            y = self.dropout(y)
+            y = dense[1](y)
+            y = self.dropout(y)
+            y = dense[2](y)
+            emb = tf.expand_dims(y,axis=1)#添加序列维度
+            emb_list.append(emb)
+
+        embs = tf.concat(emb_list,1) #在第1维(序列维度)进行合并
+        return embs
 
 
 

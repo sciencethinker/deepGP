@@ -404,11 +404,97 @@ class ChrAtten0(tf.keras.Model):
 
         return x_pre
 
-
 class ChrAtten1(tf.keras.Model):
-    def __init__(self):
+    def __init__(self,conv_param_list
+                 ,snp2chr_list,chr_emb_units,dropout_chrEmb,
+                 maxlen,
+                 fp_units,fp_acts,fp_drop,
+                 atten_units,multi_head,use_bais,
+                 full_units,full_act=['relu',None],
+                 full_dropout_rates = [0.2,0.2],
+                 attention_initializer=None,
+                 pos_CONSTANT=10000,
+                 blocks_num = 8):
+        '''
+        相较于ChrAtten0，在编码板块进行了改进，同时在末端使用注意力模块取代简单直接的单项截取向量，最后添置全连接进行估计
+        :param snp2chr_list:
+        :param chr_emb_units:
+        :param maxlen:
+        :param fp_units:
+        :param fp_acts:
+        :param fp_drop:
+        :param atten_units:
+        :param multi_head: int -- how many heads your Attention model has;
+        :param use_bais:
+        :param full_units:
+        :param full_act:
+        :param full_dropout_rates:
+        :param attention_initializer:
+        :param pos_CONSTANT:
+        :param bocks_num:
+        '''
         super(ChrAtten1, self).__init__()
+        #全局基因组卷积层，并使用一层全连接层转换为与编码向量shape相同的向量
+        self.global_conv = [cnn_0.VggBlock(*param) for param in conv_param_list]
+        self.global_conv.append(tf.keras.layers.Flatten())
+        self.global_conv.append(tf.keras.layers.Dense(chr_emb_units))
 
+
+        self.emb = snp_emb.ChrEmbed1(snp2chr_list,chr_emb_units,dropout_chrEmb)
+        # self.pos_enc = Position_encoding(chr_emb_units,maxlen,pos_CONSTANT)
+        self.decoders = Encoder(maxlen,chr_emb_units,
+                                atten_units,multi_head,use_bais,
+                                full_units,full_act,full_dropout_rates,
+                                attention_initializer,
+                                pos_CONSTANT,
+                                blocks_num)
+        #last attention layer
+        self.last_atten = MultiSelf_attention0(chr_emb_units,multi_head)
+
+        #last layer ——> full prediction (abbr."fp")
+        self.ffn_pre = FullLayer(units_list=fp_units,activation_list=fp_acts)
+        self.fp0 = tf.keras.layers.Dense(units=fp_units[0],activation=fp_acts[0],name='fp0')
+        self.fp_drop0 = tf.keras.layers.Dropout(fp_drop, name='fp_drop0')
+        self.fp1 = tf.keras.layers.Dense(units=fp_units[1],activation=fp_acts[1],name='fp1')
+        self.fp_drop1 = tf.keras.layers.Dropout(fp_drop,name='fp_drop1')
+        self.fp2 = tf.keras.layers.Dense(units=fp_units[2],activation=fp_acts[2],name='fp2')
+        self.fp_drop2 = tf.keras.layers.Dropout(fp_drop, name='fp_drop2')
+        self.fpAL = tf.keras.layers.Dense(units=fp_units[-1],activation=fp_acts[-1],name='fpAL')
+
+    def call(self, inputs, training=None, mask=None):
+        '''
+        charAtten forward
+        :param inputs: n,m
+        :param training:
+        :param mask:
+        :return:
+        '''
+        #全局卷积编码
+        x_conv = tf.expand_dims(inputs,axis=-1) #在最后一维增加1维，成为3Dtensor
+        for conv in self.global_conv:
+            x_conv = conv(x_conv)
+        x_conv = tf.expand_dims(x_conv,axis=1) #将二维tensor x_conv转换为序列长度为1,编码长度为d_model的三维tensor
+
+        #染色体向量编码
+        x = self.emb(inputs)
+
+        x = tf.concat((x,x_conv),axis=1) #axis = 1 ，在序列维度进行拼接
+
+        x = self.decoders(x)
+        x_pre = self.last_atten(x[:,0,:],x,x) #使用全局特征向量作为query对该网络进行注意力模块操作  (n,m,d)->(n,1,d)
+
+
+        #全连接前向传播
+        x_pre = self.ffn_pre(x_pre)
+        x_pre = self.fp0(x_pre)
+        x_pre = self.fp_drop0(x_pre)
+        x_pre = self.fp1(x_pre)
+        x_pre = self.fp_drop1(x_pre)
+        x_pre = self.fp2(x_pre)
+        x_pre = self.fp_drop2(x_pre)
+        x_pre = self.fpAL(x_pre)
+
+        return x_pre
 
 
 
@@ -485,25 +571,25 @@ if __name__ == "__main__":
     # print('res\n{}'.format(res))
 
     # :test8:SNPAtten---train
-    print('\n:test8:SNPAtten---train\n')
-    te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
-    te_y = tf.random.uniform(shape=(100,1))
-    #data_process
-    d_model = 5
-    te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
-    snp_emb.Snp2Vec(depth=d_model).embeding(te)
-    snp_num = te.shape[1]
-    ####################### done #######################
-
-    snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
-                          fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
-                          fp_drop=0.2,
-                          attention_units=d_model, multi_head=8, use_bais=True,
-                          full_units=[d_model * 2, d_model])
-    snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
-
-    history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
-    snp_model.summary()
+    # print('\n:test8:SNPAtten---train\n')
+    # te = tf.random.uniform(shape=(100,50),maxval=4,minval=0,dtype=tf.int32)
+    # te_y = tf.random.uniform(shape=(100,1))
+    # #data_process
+    # d_model = 5
+    # te = snp_emb.Snp2Vec(depth=d_model).add_coloumn(te, )
+    # snp_emb.Snp2Vec(depth=d_model).embeding(te)
+    # snp_num = te.shape[1]
+    # ####################### done #######################
+    #
+    # snp_model = SNPAtten0(maxlen=snp_num,d_model=d_model,
+    #                       fp_units=[d_model * 3, d_model * 2, d_model, 1], fp_acts=['relu', 'relu', 'relu', None],
+    #                       fp_drop=0.2,
+    #                       attention_units=d_model, multi_head=8, use_bais=True,
+    #                       full_units=[d_model * 2, d_model])
+    # snp_model.compile(loss=tf.keras.losses.MeanSquaredError())
+    #
+    # history = snp_model.fit(x=te,y=te_y,batch_size=32,epochs=10)
+    # snp_model.summary()
 
     # #:test9:ChrAtten0---train
     # print('\n#:test9:ChrAtten0---train\n')
@@ -532,6 +618,37 @@ if __name__ == "__main__":
     # history = chr_model.fit(x=te_x,y=te_y,batch_size=32,epochs=10)
     #
     # chr_model.summary()
+
+    #:test9:ChrAtten1---train
+    print('\n#:test10:ChrAtten1---train\n')
+    sample_num = 2
+    maxlen = 21
+    chr_s = 16
+    te_x = tf.random.uniform((sample_num,46731),maxval=2,minval=0,)
+    snpnum_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368,
+                   1241, 1383, 1021, 2643, 2468, 2159, 1372, 1094, 981,  2153]
+    te_y = tf.random.uniform((sample_num, 1))
+    ############################################################################
+    # te_x = tf.random.uniform((sample_num,1000))
+    # te_y = tf.random.uniform((sample_num,1))
+    # snpnum_list = [250,250,250,200,50]
+    # maxlen = 6
+    # chr_s = 32
+
+
+    conv_list = [[16,3,1,],[32,3,1],[32,3,1]]
+    dropout_chrEmb = 0.4
+    chr_model = ChrAtten1(conv_param_list=conv_list,maxlen = maxlen,snp2chr_list=snpnum_list,chr_emb_units=chr_s,dropout_chrEmb=dropout_chrEmb,
+                          fp_units=[chr_s,int(chr_s*0.8),int(chr_s*0.5),1], fp_acts=['relu', 'relu', 'relu', None],fp_drop=0.2,
+                          atten_units=chr_s,multi_head=8,use_bais=True,
+                          full_units=[int(chr_s*1.5),int(chr_s)],blocks_num=8
+                          )
+    chr_model(te_x)
+    chr_model.compile(loss=tf.keras.losses.MeanSquaredError())
+    history = chr_model.fit(x=te_x,y=te_y,batch_size=32,epochs=10)
+
+    chr_model.summary()
+
 
 
 

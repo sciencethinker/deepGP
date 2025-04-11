@@ -131,7 +131,7 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
 '''
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ChrAtten0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
-if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
+if sysargs['model'] in ['ChrAtten0','chr0','ca0',*allModelName]:
     # scalar
     # stddev = tf.math.reduce_std(y_all)
     # mean = tf.reduce_mean(y_all)
@@ -168,6 +168,60 @@ if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
                    'blocks_num': 8}
     # model_name = 'ChrAtten0/'
     model_name = 'ChrAtten0_unstd/'
+
+'''
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ChrAtten1 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['ChrAtten1','chr1','ca1',*allModelName]:
+    # scalar
+    # stddev = tf.math.reduce_std(y_all)
+    # mean = tf.reduce_mean(y_all)
+    # y_all = (y_all - mean) / stddev
+    # model_name = 'ChrAtten1/'
+    model_name = 'chrAtten1_unstd/'
+
+    # choose model & set model param & get model_name
+    Model = deepm.model_all['ChrAtten1']
+    # snp2chr_list: int型列表，给定不同染色体对应的snp位点数量对应chr之间的所属关系
+    # 注意snp位点不可以改变！若不使用s1基因序列，则需要重新调试！
+    snp2chr_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368, 1241, 1383, 1021, 2643, 2468, 2159,
+                    1372, 1094, 981, 2153]
+    maxlen = 21
+    conv_param_list = [[128, 3, 1,'same','relu',0.4 ], [128, 3, 1,'same','relu',0.4],
+                       [256, 3, 1,'same','relu',0.4], [256, 3, 1,'same','relu',0.4],
+                       [512, 3, 1,'same','relu',0.4 ], [512, 3, 1,'same','relu',0.4],
+                       [1024, 3, 1,'same','relu',0.4],[1024, 3, 1,'same','relu',0.4]]
+    chr_emb_units = 1024
+
+
+    # self_attention units & heads
+    heads = 8
+    atten_units = chr_emb_units
+    full_units = [int(chr_emb_units * 0.8), chr_emb_units]
+
+    # 4层全连接预测层
+    fp_units = [chr_emb_units, int(chr_emb_units * 0.8), int(chr_emb_units * 0.8), 1]
+    fp_acts = ['relu', 'relu', 'relu', None]
+
+
+    #dropout
+    dropout_chrEmb =  0.4  #编码时的全连接层与卷积结构dropout
+    dropout_atten =  [0.4, 0.4]  #self_attention的全连接层dropout
+    fp_drop = 0.4  #末尾全连接层的dropout
+
+
+
+    model_param = {'conv_param_list': conv_param_list,
+                   'snp2chr_list': snp2chr_list, 'chr_emb_units': chr_emb_units,'dropout_chrEmb':dropout_chrEmb,
+                   'maxlen': maxlen,
+                   'fp_units': fp_units, 'fp_acts': fp_acts, 'fp_drop': fp_drop,
+                   'atten_units': atten_units, 'multi_head': heads, 'use_bais': True,
+                   'full_units': full_units, 'full_act': ['relu', None],
+                   'full_dropout_rates':dropout_atten,
+                   'attention_initializer': None,
+                   'pos_CONSTANT': 10000,
+                   'blocks_num': 8}
+
 
 
 

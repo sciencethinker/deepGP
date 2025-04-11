@@ -31,5 +31,8 @@ model_all['FNN_res1'] = FNN_res1
 from package.model.cnn0 import VGG0
 model_all['VGG0'] = VGG0
 
+#8.
+from package.model.self_attention0 import ChrAtten1
+model_all['ChrAtten1'] = ChrAtten1
 
 
