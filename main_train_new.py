@@ -103,9 +103,9 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     ####################################### data process ##############################################
     '''
     #scalar
-    # stddev = tf.math.reduce_std(y_all)
-    # mean = tf.reduce_mean(y_all)
-    # y_all = (y_all - mean) / stddev
+    stddev = tf.math.reduce_std(y_all)
+    mean = tf.reduce_mean(y_all)
+    y_all = (y_all - mean) / stddev
     #add coloumn
     d_model = 5
     pick_num = 50
@@ -133,9 +133,9 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
 '''
 if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
     # scalar
-    stddev = tf.math.reduce_std(y_all)
-    mean = tf.reduce_mean(y_all)
-    y_all = (y_all - mean) / stddev
+    # stddev = tf.math.reduce_std(y_all)
+    # mean = tf.reduce_mean(y_all)
+    # y_all = (y_all - mean) / stddev
 
     # choose model & set model param & get model_name
     Model = deepm.model_all['ChrAtten0']
@@ -166,7 +166,9 @@ if sysargs['model'] in ['ChrAtten0','chr0',*allModelName]:
                    'attention_initializer': None,
                    'pos_CONSTANT': 10000,
                    'blocks_num': 8}
-    model_name = 'ChrAtten0/'
+    # model_name = 'ChrAtten0/'
+    model_name = 'ChrAtten0_unstd/'
+
 
 
 '''
