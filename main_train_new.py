@@ -103,9 +103,9 @@ if sysargs['model'] in ['SNPAtten0','sa0',*allModelName]:
     ####################################### data process ##############################################
     '''
     #scalar
-    stddev = tf.math.reduce_std(y_all)
-    mean = tf.reduce_mean(y_all)
-    y_all = (y_all - mean) / stddev
+    # stddev = tf.math.reduce_std(y_all)
+    # mean = tf.reduce_mean(y_all)
+    # y_all = (y_all - mean) / stddev
     #add coloumn
     d_model = 5
     pick_num = 50
