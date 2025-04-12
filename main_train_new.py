@@ -187,10 +187,10 @@ if sysargs['model'] in ['ChrAtten1','chr1','ca1',*allModelName]:
     snp2chr_list = [8769, 3484, 2442, 2153, 2262, 1811, 2583, 2176, 2168, 2368, 1241, 1383, 1021, 2643, 2468, 2159,
                     1372, 1094, 981, 2153]
     maxlen = 21
-    conv_param_list = [[128, 3, 1,'same','relu',0.4 ], [128, 3, 1,'same','relu',0.4],
-                       [256, 3, 1,'same','relu',0.4], [256, 3, 1,'same','relu',0.4],
+    conv_param_list = [[32, 3, 1,'same','relu',0.4 ], [64, 3, 1,'same','relu',0.4],
+                       [128, 3, 1,'same','relu',0.4], [256, 3, 1,'same','relu',0.4],
                        [512, 3, 1,'same','relu',0.4 ], [512, 3, 1,'same','relu',0.4],
-                       [1024, 3, 1,'same','relu',0.4],[1024, 3, 1,'same','relu',0.4]]
+                       [1024, 3, 1,'same','relu',0.4]]
     chr_emb_units = 1024
 
 
@@ -198,6 +198,7 @@ if sysargs['model'] in ['ChrAtten1','chr1','ca1',*allModelName]:
     heads = 8
     atten_units = chr_emb_units
     full_units = [int(chr_emb_units * 0.8), chr_emb_units]
+    blocks_num = 9
 
     # 4层全连接预测层
     fp_units = [chr_emb_units, int(chr_emb_units * 0.8), int(chr_emb_units * 0.8), 1]
@@ -220,7 +221,7 @@ if sysargs['model'] in ['ChrAtten1','chr1','ca1',*allModelName]:
                    'full_dropout_rates':dropout_atten,
                    'attention_initializer': None,
                    'pos_CONSTANT': 10000,
-                   'blocks_num': 8}
+                   'blocks_num': blocks_num}
 
 
 

@@ -26,7 +26,7 @@ SAVE_FLOAT = 2 #保留有效数字位数
 #过拟合采用参数
 ALPHA = 0.5
 GAMMA = 4
-SITA = 0.65
+SITA = 1
 
 THRESHOLD_PORTION_CALLBACK = 0.5 #cor_current_val > (self.cor_val * self.threshold_portion)
 

@@ -123,9 +123,10 @@ class ChrEmbed1(tf.keras.layers.Layer):
         self.dropout = tf.keras.layers.Dropout(rate=dropout_rate)
         #创建不同染色体对应的编码层，映射至相同向量子空间,构建三层的前向传播链
         for i,chr_num in enumerate(self.snp2chr_list):
-            self.denses.append([tf.keras.layers.Dense(units,activation=activation,name='chr{}_0'.format(i)),
-                                tf.keras.layers.Dense(units,activation=activation,name='chr{}_1'.format(i)),
-                                tf.keras.layers.Dense(units,activation=activation,name='chr{}_2'.format(i))])
+            # self.denses.append([tf.keras.layers.Dense(units,activation=activation,name='chr{}_0'.format(i)),
+            #                     tf.keras.layers.Dense(units,activation=activation,name='chr{}_1'.format(i)),
+            #                     tf.keras.layers.Dense(units,activation=activation,name='chr{}_2'.format(i))])
+            self.denses.append([tf.keras.layers.Dense(units, activation=activation, name='chr{}_0'.format(i)),])
 
 
 
@@ -136,10 +137,10 @@ class ChrEmbed1(tf.keras.layers.Layer):
         '''难道不能使用张量操作替代for循环吗?'''
         for i,dense in enumerate(self.denses):
             y = dense[0](x_list[i])
-            y = self.dropout(y)
-            y = dense[1](y)
-            y = self.dropout(y)
-            y = dense[2](y)
+            # y = self.dropout(y)
+            # y = dense[1](y)
+            # y = self.dropout(y)
+            # y = dense[2](y)
             emb = tf.expand_dims(y,axis=1)#添加序列维度
             emb_list.append(emb)
 
