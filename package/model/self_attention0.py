@@ -481,7 +481,7 @@ class ChrAtten1(tf.keras.Model):
         x = tf.concat((x,x_conv),axis=1) #axis = 1 ，在序列维度进行拼接
 
         x = self.decoders(x)
-        x_pre = self.last_atten(x[:,0,:],x[0,1:,:],x[0,1:,:]) #使用全局特征向量作为query，通过所有深层染色体编码向量进行注意力向量运算  (n,m,d)->(n,1,d)
+        x_pre = self.last_atten(x[:,0,:],x[:,1:,:],x[:,1:,:]) #使用全局特征向量作为query，通过所有深层染色体编码向量进行注意力向量运算  (n,m,d)->(n,1,d)
 
 
         #全连接前向传播
