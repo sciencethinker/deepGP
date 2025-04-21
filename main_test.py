@@ -23,7 +23,7 @@ gpu调用调试
 choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
-if platform.system() == 'Windows':sysargs['model'] = 'vgg0'
+if platform.system() == 'Windows':sysargs['model'] = 'a'
 ifLodedata = False if 'lode_data' not in sysargs.keys() else (int(sysargs['lode_data'])) #0 or 1
 epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
@@ -59,7 +59,9 @@ label_dict = {
 label_file_name = None if 'label' not in sysargs.keys() else sysargs['label']
 label_file = label_dict[label_file_name] if label_file_name else 'data/label/laOrig_10fat_5021.phen'
 data_dict = {}
-x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
+
+if ifLodedata:
+    x_all,y_all,x_pre,id_pre = ds.loadData(input_file,label_file) #x_all,y_all  -> 尚未区分训练验证集；x_pre,id_pre->未知label的x与对应id
 
 model_dict = {}
 ckpt_dict = {}
@@ -141,12 +143,12 @@ if sysargs['model'] in ['VGG0', 'vgg0', *allModelName]:
 
 for name in model_dict.keys():
     model = None
-
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ {}summary @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n'.format(name) * 5)
     model,param = model_dict[name]  # 替换为你的模型类
-    model = model(param) if param!=None else model()
+    model = model(**param) if param!=None else model()
     optimizer = tf.keras.optimizers.Adam()  # 替换为你使用的优化器
 
-    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ {} @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n'.format(name)*5)
+
     model.summary()
     ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
     # 创建Checkpoint对象
