@@ -1,5 +1,7 @@
 '''
 检验model水平
+nohup python main_test.py --model a > ../sum/test.log 2>&1 &
+
 '''
 import platform
 import package.system_process.system_args as sy
@@ -143,7 +145,6 @@ for name in model_dict.keys():
     optimizer = tf.keras.optimizers.Adam()  # 替换为你使用的优化器
 
 
-    model.summary()
     ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
     # 创建Checkpoint对象
     checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
