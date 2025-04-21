@@ -146,10 +146,7 @@ for name in model_dict.keys():
 
 
     ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
-    # 创建Checkpoint对象
-    checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer)
-    # 从指定路径恢复模型
-    checkpoint.restore(ckpt).expect_partial()
+    model.load_weights(ckpt)
 
     model.summary()
 
