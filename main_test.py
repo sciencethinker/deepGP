@@ -112,28 +112,22 @@ if sysargs['model'] in ['ChrAtten0','chr0','ca0',*allModelName]:
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ VGG0 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
 if sysargs['model'] in ['VGG0', 'vgg0', *allModelName]:
-        # scalar
-        stddev = tf.math.reduce_std(y_all)
-        mean = tf.reduce_mean(y_all)
-        y_all = (y_all - mean) / stddev
-        x_all = tf.expand_dims(x_all, 2)  # [n,m] -> [n,m,1]
+    # choose model & set model param & get model_name
+    Model = deepm.model_all['VGG0']
+    conv_param_list = [[64, 3, 1, ], [128, 3, 1, ], [256, 3, 1, 'same'], [512, 3, 1, ], [512, 3, 1, ]]
+    # dropout_dense_rate = 0.2
+    # 降低过拟合
+    dropout_dense_rate = 0.6
+    model_param = {'conv_param_list': conv_param_list, 'dropout_dense_rate': dropout_dense_rate, 'out_units': 1,
+                   'out_act': None}
+    model_name = 'vgg0/'
 
-        # choose model & set model param & get model_name
-        Model = deepm.model_all['VGG0']
-        conv_param_list = [[64, 3, 1, ], [128, 3, 1, ], [256, 3, 1, 'same'], [512, 3, 1, ], [512, 3, 1, ]]
-        # dropout_dense_rate = 0.2
-        # 降低过拟合
-        dropout_dense_rate = 0.6
-        model_param = {'conv_param_list': conv_param_list, 'dropout_dense_rate': dropout_dense_rate, 'out_units': 1,
-                       'out_act': None}
-        model_name = 'vgg0/'
+    tmp = fp.getSnpLabel_mes(input_file, label_file)  # 获取snp与label文件信息以创建各类out的头目录
+    ckpt_head = 'out/checkpoint/' + model_name + tmp
+    save_history_head = 'out/train_history/' + model_name + tmp
+    log = 'out/log/' + model_name + tmp + 'a.log'
 
-        tmp = fp.getSnpLabel_mes(input_file, label_file)  # 获取snp与label文件信息以创建各类out的头目录
-        ckpt_head = 'out/checkpoint/' + model_name + tmp
-        save_history_head = 'out/train_history/' + model_name + tmp
-        log = 'out/log/' + model_name + tmp + 'a.log'
-
-        model_dict[model_name] = [Model,model_param]
+    model_dict[model_name] = [Model,model_param]
 
 
 
