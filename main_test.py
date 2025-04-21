@@ -130,7 +130,7 @@ if sysargs['model'] in ['VGG0', 'vgg0', *allModelName]:
     log = 'out/log/' + model_name + tmp + 'a.log'
 
     model_dict[model_name] = [Model,model_param]
-
+    ckpt_dict[model_name] = ckpt_head
 
 
 
