@@ -26,7 +26,7 @@ choose_feature = ['100fat','100back','115fat','115back','test']
 allModelName = ['a','all']
 ''' choose model '''
 if platform.system() == 'Windows':sysargs['model'] = 'a'
-ifLodedata = False if 'lode_data' not in sysargs.keys() else (int(sysargs['lode_data'])) #0 or 1
+ifLodedata = True if 'lode_data' not in sysargs.keys() else (int(sysargs['lode_data'])) #0 or 1
 epoch = 3 if 'epoch' not in sysargs.keys() else int(sysargs['epoch'])
 batch = 32 if 'batch' not in sysargs.keys() else int(sysargs['batch'])
 lr_init = 0.01 if 'lr' not in sysargs.keys() else float(sysargs['lr'])
@@ -142,15 +142,15 @@ for name in model_dict.keys():
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ {}summary @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n'.format(name) * 5)
     model,param = model_dict[name]  # 替换为你的模型类
     model = model(**param) if param!=None else model()
-    optimizer = tf.keras.optimizers.Adam()  # 替换为你使用的优化器
+    optimizer = tf.keras.optimizers.Adam(0.0001)  #替换为你使用的优化器
     loss = tf.keras.losses.MeanSquaredError()
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=tc.METRICS)
+    model(x_pre[0:9,:])
 
     ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
     model.load_weights(ckpt)
-    tf.keras.optimizers.Adam()
     model.summary()
 
 
