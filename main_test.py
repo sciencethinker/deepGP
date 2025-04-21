@@ -136,13 +136,6 @@ if sysargs['model'] in ['VGG0', 'vgg0', *allModelName]:
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Fnn_res1 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 '''
 if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
-    '''
-    ####################################### data process ##############################################
-    '''
-    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
-        data_dict['{}'.format(i)] = (data_train, data_val)
-    print('**************************** data process done! *****************************')
-
     #choose model & model param set
     model_name = 'FNN_res1/'
     Model = deepm.model_all['FNN_res1']
