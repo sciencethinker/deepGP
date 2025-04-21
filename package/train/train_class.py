@@ -10,8 +10,12 @@ import package.train.callbacks as callbacks
 import package.train.compile as compile
 import package.out_process.predictFuc as pred
 
+'''
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+'''
 LR = 0.0001
 Param_opt = {"learning_rate":LR} #未来optimizer接口
+
 OPTIMIZER = tf.keras.optimizers.Adam   #class
 LOSS = tf.keras.losses.MeanSquaredError() #instance list
 METRICS = [compile.Corralation(),] #instance list

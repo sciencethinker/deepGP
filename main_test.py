@@ -143,11 +143,13 @@ for name in model_dict.keys():
     model,param = model_dict[name]  # 替换为你的模型类
     model = model(**param) if param!=None else model()
     optimizer = tf.keras.optimizers.Adam()  # 替换为你使用的优化器
-
+    loss = tf.keras.losses.MeanSquaredError()
+    model.compile(optimizer=optimizer,
+                  loss=loss)
 
     ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
     model.load_weights(ckpt)
-
+    tf.keras.optimizers.Adam()
     model.summary()
 
 
