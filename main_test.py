@@ -132,8 +132,37 @@ if sysargs['model'] in ['VGG0', 'vgg0', *allModelName]:
     model_dict[model_name] = [Model,model_param]
     ckpt_dict[model_name] = ckpt_head
 
+'''
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Fnn_res1 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+'''
+if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
+    '''
+    ####################################### data process ##############################################
+    '''
+    for i, (data_train, data_val) in enumerate(ds.get_cross_data(data=dataSet, fold_num=cross_fold)):
+        data_dict['{}'.format(i)] = (data_train, data_val)
+    print('**************************** data process done! *****************************')
 
+    #choose model & model param set
+    model_name = 'FNN_res1/'
+    Model = deepm.model_all['FNN_res1']
+    model_param = {'blocks_arrange':[8192,*[None for _ in range(3)],6144,*[None for _ in range(3)],2048,*[None for _ in range(3)],
+                                     2048,*[None for _ in range(3)],1024,*[None for _ in range(6)],
+                                     512,*[None for _ in range(3)]],
+                    'activation':'relu',
+                    'dropout_rate':0.3,
+                    'single_block_num':3,
+                    'last_dense_units':1,
+                    'last_dens_act':None}
 
+    #got to train
+    tmp = fp.getSnpLabel_mes(input_file,label_file) #获取snp与label文件信息以创建各类out的头目录
+    ckpt_head = 'out/checkpoint/' + model_name + tmp
+    save_history_head = 'out/train_history/' + model_name + tmp
+    log = 'out/log/' + model_name + tmp
+
+    model_dict[model_name] = [Model,model_param]
+    ckpt_dict[model_name] = ckpt_head
 
 # 定义模型结构（必须与保存时的结构相同）
 
@@ -147,10 +176,14 @@ for name in model_dict.keys():
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=tc.METRICS)
-    model(x_pre[0:9,:])
+    if name == 'vgg0':
+        x_vgg = tf.expand_dims(x_all,2) #[n,m] -> [n,m,1]
+        model(x_vgg[0:9, :])
+    else:
+        model(x_pre[0:9,:])
 
-    ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
-    model.load_weights(ckpt)
+    # ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
+    # model.load_weights(ckpt)
     model.summary()
 
 
