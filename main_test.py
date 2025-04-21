@@ -145,7 +145,8 @@ for name in model_dict.keys():
     optimizer = tf.keras.optimizers.Adam()  # 替换为你使用的优化器
     loss = tf.keras.losses.MeanSquaredError()
     model.compile(optimizer=optimizer,
-                  loss=loss)
+                  loss=loss,
+                  metrics=tc.METRICS)
 
     ckpt = ckpt_dict[name] + 'corss{}/model.ckpt'.format(0)
     model.load_weights(ckpt)
