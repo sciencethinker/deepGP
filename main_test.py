@@ -161,6 +161,7 @@ if sysargs['model'] in ['FNN_res1','fnn_res1','fn_res1','fn1',*allModelName]:
 
 for name in model_dict.keys():
     model = None
+    print('\n\n\n')
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ {}summary @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n'.format(name) * 5)
     model,param = model_dict[name]  # 替换为你的模型类
     model = model(**param) if param!=None else model()
@@ -169,9 +170,9 @@ for name in model_dict.keys():
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=tc.METRICS)
-    if name == 'vgg0':
+    if name == 'vgg0/':
         x_vgg = tf.expand_dims(x_all,2) #[n,m] -> [n,m,1]
-        model(x_vgg[0:9, :])
+        model(x_vgg[0:9])
     else:
         model(x_pre[0:9,:])
 

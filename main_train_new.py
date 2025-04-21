@@ -234,6 +234,7 @@ if sysargs['model'] in ['VGG0','vgg0',*allModelName]:
     stddev = tf.math.reduce_std(y_all)
     mean = tf.reduce_mean(y_all)
     y_all = (y_all - mean) / stddev
+
     x_all = tf.expand_dims(x_all,2) #[n,m] -> [n,m,1]
 
     # choose model & set model param & get model_name
