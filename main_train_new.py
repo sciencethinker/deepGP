@@ -198,7 +198,7 @@ if sysargs['model'] in ['ChrAtten1','chr1','ca1',*allModelName]:
     heads = 8
     atten_units = chr_emb_units
     full_units = [int(chr_emb_units * 0.8), chr_emb_units]
-    blocks_num = 9
+    blocks_num = 9 #
 
     # 4层全连接预测层
     fp_units = [chr_emb_units, int(chr_emb_units * 0.8), int(chr_emb_units * 0.8), 1]
@@ -207,7 +207,7 @@ if sysargs['model'] in ['ChrAtten1','chr1','ca1',*allModelName]:
 
     #dropout
     dropout_chrEmb =  0.4  #编码时的全连接层与卷积结构dropout
-    dropout_atten =  [0.4, 0.4]  #self_attention的全连接层dropout
+    dropout_atten =  [0.2, 0.2]  #self_attention的全连接层dropout
     fp_drop = 0.4  #末尾全连接层的dropout
 
 
